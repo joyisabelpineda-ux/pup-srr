@@ -1,0 +1,23 @@
+{% extends 'base.html' %}{% from '_macros.html' import icon, badge, pager, empty with context %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>User management</h1><p>Activate or deactivate accounts and assign roles. Deactivated users are signed out immediately.</p></div>
+  <a class="btn ghost" href="{{ url_for('admin.report_csv', kind='users') }}">{{ icon('download') }}Export CSV</a></div>
+<form class="card filters" method="get" action="{{ url_for('admin.users') }}" aria-label="User filters">
+  <div class="field"><label for="q">Search</label><input id="q" type="search" name="q" value="{{ f.q }}" placeholder="Name, ID or email"></div>
+  <div class="field"><label for="role">Role</label><select id="role" name="role" data-autosubmit><option value="">All roles</option>{% for r in roles %}<option {{ 'selected' if f.role == r }}>{{ r }}</option>{% endfor %}</select></div>
+  <div class="field"><label for="active">Account</label><select id="active" name="active" data-autosubmit><option value="">Any</option><option value="1" {{ 'selected' if f.active == '1' }}>Active</option><option value="0" {{ 'selected' if f.active == '0' }}>Deactivated</option></select></div>
+  <div class="actions"><button class="btn" type="submit">{{ icon('search') }}Filter</button><a class="btn ghost" href="{{ url_for('admin.users') }}">Reset</a></div></form>
+<section class="card flush mt-2">{% if rows %}<div class="table-wrap"><table><thead><tr><th>User</th><th>Role</th><th>Campus</th><th>Last login</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+{% for u in rows %}<tr><td><strong>{{ u.full_name }}</strong><div class="muted small">{{ u.user_id }} · {{ u.email }}</div></td>
+  <td>{% if u.id != current_user.id %}<form class="flex gap-1 items-center" method="post" action="{{ url_for('admin.user_role', uid=u.id) }}" data-confirm="Change {{ u.full_name }}’s role? This changes what they can access." data-confirm-title="Change role" data-confirm-label="Change role" data-confirm-style="no">{{ csrf_field() }}
+      <label class="sr-only" for="role{{ u.id }}">Role for {{ u.full_name }}</label><select id="role{{ u.id }}" name="role" class="compact">{% for r in roles %}<option {{ 'selected' if u.role == r }}>{{ r }}</option>{% endfor %}</select><button class="btn ghost sm" type="submit">Set</button></form>
+    {% else %}{{ u.role }} <span class="muted small">(you)</span>{% endif %}</td>
+  <td>{{ u.campus_name or '—' }}</td><td class="nowrap">{{ u.last_login_at|dt if u.last_login_at else 'Never' }}</td>
+  <td>{{ badge('Active', 'G') if u.is_active else badge('Deactivated', 'N') }}</td>
+  <td class="nowrap">{% if u.id != current_user.id %}<form method="post" action="{{ url_for('admin.user_active', uid=u.id) }}" data-confirm="{{ 'Deactivate' if u.is_active else 'Activate' }} the account of {{ u.full_name }}?" data-confirm-title="{{ 'Deactivate' if u.is_active else 'Activate' }} account" data-confirm-label="{{ 'Deactivate' if u.is_active else 'Activate' }}" data-confirm-style="{{ 'yes' if u.is_active else 'no' }}">
+    {{ csrf_field() }}<input type="hidden" name="active" value="{{ 0 if u.is_active else 1 }}"><input type="hidden" name="back" value="{{ request.full_path.rstrip('?') }}"><button class="btn {{ 'danger' if u.is_active else 'ok' }} sm" type="submit">{{ 'Deactivate' if u.is_active else 'Activate' }}</button></form>
+    <form method="post" action="{{ url_for('admin.user_reset_password', uid=u.id) }}" data-confirm="Reset the password of {{ u.full_name }}? A temporary password will be shown once and they will be signed out." data-confirm-title="Reset password" data-confirm-label="Reset password" data-confirm-style="no">{{ csrf_field() }}<button class="btn ghost sm" type="submit">{{ icon('key') }}Reset password</button></form>{% else %}<span class="muted small">—</span>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>{% else %}{{ empty('No users found','Adjust the filters above.','users') }}{% endif %}</section>
+{{ pager(pg, 'admin.users') }}
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}{% from '_macros.html' import icon, badge, pager, empty with context %}
+{% block title %}Room status history{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Room status history</h1><p>Every change to a room’s status, including automatic changes from reservations.</p></div>
+  <a class="btn ghost" href="{{ url_for('admin.report_csv', kind='history') }}">{{ icon('download') }}Export CSV</a></div>
+<form class="card filters" method="get" action="{{ url_for('admin.history') }}" aria-label="History filters">
+  <div class="field"><label for="campus">Campus</label><select id="campus" name="campus" data-autosubmit><option value="">All campuses</option>{% for c in campuses %}<option value="{{ c.id }}" {{ 'selected' if f.campus == c.id|string }}>{{ c.name }}</option>{% endfor %}</select></div>
+  <div class="field"><label for="room">Room</label><input id="room" type="search" name="room" value="{{ f.room }}" placeholder="Number or name"></div>
+  <div class="field"><label for="status">New status</label><select id="status" name="status" data-autosubmit><option value="">Any</option>{% for s in room_statuses %}<option {{ 'selected' if f.status == s }}>{{ s }}</option>{% endfor %}</select></div>
+  <div class="field"><label for="date">Date</label><input id="date" type="date" name="date" value="{{ f.date }}"></div>
+  <div class="actions"><button class="btn" type="submit">{{ icon('search') }}Filter</button><a class="btn ghost" href="{{ url_for('admin.history') }}">Reset</a></div></form>
+<section class="card flush mt-2">{% if rows %}<div class="table-wrap"><table><thead><tr><th>Time</th><th>Room</th><th>Change</th><th>Reservation window</th><th>Source</th><th>By</th><th>Note</th></tr></thead><tbody>
+{% for h in rows %}<tr><td class="nowrap">{{ h.changed_at|dt }}</td><td>{{ h.room_number }} · {{ h.room_name }}<div class="muted small">{{ h.building }}, {{ h.campus_name }}</div></td>
+  <td class="nowrap">{{ badge(h.previous_status, room_class.get(h.previous_status,'N')) }} &rarr; {{ badge(h.new_status, room_class.get(h.new_status,'N')) }}</td>
+  <td>{% if h.reservation_start %}{{ h.reservation_start|dt }} – {{ h.reservation_end|tfmt }}{% else %}—{% endif %}</td><td>{{ h.source }}</td><td>{{ h.changed_by_name or 'System' }}</td><td>{{ h.note }}</td></tr>{% endfor %}
+</tbody></table></div>{% else %}{{ empty('No history found','Status changes will be listed here.','history') }}{% endif %}</section>
+{{ pager(pg, 'admin.history') }}
+{% endblock %}

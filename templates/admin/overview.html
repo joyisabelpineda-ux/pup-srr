@@ -1,0 +1,32 @@
+{% extends 'base.html' %}{% from '_macros.html' import icon, res_badge, badge, empty with context %}
+{% block title %}Admin overview{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Administrator overview</h1><p>Live statistics from the database.</p></div>
+  <a class="btn gold" href="{{ url_for('admin.reservations', status='Pending') }}">{{ icon('clip') }}Review pending requests</a></div>
+<section class="grid g4" aria-label="Key statistics">
+  <div class="card stat"><div class="ico">{{ icon('users') }}</div><div><strong>{{ stats.users }}</strong><span class="l">Users ({{ stats.active_users }} active)</span></div></div>
+  <div class="card stat"><div class="ico">{{ icon('building') }}</div><div><strong>{{ stats.rooms }}</strong><span class="l">Rooms</span></div></div>
+  <div class="card stat gold"><div class="ico">{{ icon('clock') }}</div><div><strong>{{ stats.pending }}</strong><span class="l">Pending requests</span></div></div>
+  <div class="card stat G"><div class="ico">{{ icon('check') }}</div><div><strong>{{ stats.approved_upcoming }}</strong><span class="l">Approved (upcoming)</span></div></div>
+</section>
+<section class="grid g4 mt-2" aria-label="Room availability">
+  {% for s in room_statuses %}<div class="card stat {{ room_class[s] }}"><div class="ico">{{ icon('building') }}</div><div><strong>{{ room_counts[s] }}</strong><span class="l">{{ s }}</span></div></div>{% endfor %}
+</section>
+<section class="grid g2 mt-2">
+  <div class="card flush"><div class="card-head" data-pad><h2>Pending requests</h2><a href="{{ url_for('admin.reservations', status='Pending') }}">View all</a></div>
+    {% if pending %}<div class="table-wrap"><table><thead><tr><th>Requester</th><th>Room</th><th>When</th><th>Action</th></tr></thead><tbody>
+      {% for r in pending %}<tr><td>{{ r.full_name }}<div class="muted small">{{ r.role }}</div></td><td>{{ r.room_number }} · {{ r.room_name }}</td>
+        <td class="nowrap">{{ r.start_at|dfmt }}<div class="muted small">{{ r.start_at|tfmt }} – {{ r.end_at|tfmt }}</div></td>
+        <td class="nowrap"><a class="btn sm" href="{{ url_for('main.reservation_detail', rid=r.id) }}">Review</a></td></tr>{% endfor %}</tbody></table></div>
+    {% else %}{{ empty('All caught up','No pending requests need review.','check') }}{% endif %}</div>
+  <div class="card flush"><div class="card-head" data-pad><h2>Recent access decisions</h2><a href="{{ url_for('admin.access_logs') }}">All logs</a></div>
+    {% if access %}<div class="table-wrap"><table><thead><tr><th>Time</th><th>User</th><th>Room</th><th>Result</th></tr></thead><tbody>
+      {% for a in access %}<tr><td class="nowrap">{{ a.occurred_at|dt }}</td><td>{{ a.user_name_snapshot }}</td><td>{{ a.room_number or '—' }}</td><td>{{ badge(a.result, status_class.get(a.result,'N')) }}</td></tr>{% endfor %}</tbody></table></div>
+    {% else %}{{ empty('No access checks yet','QR authorization attempts will appear here.','shield') }}{% endif %}</div>
+</section>
+<section class="grid g3 mt-2">
+  <div class="card stat"><div class="ico">{{ icon('calendar') }}</div><div><strong>{{ stats.today }}</strong><span class="l">Approved bookings today</span></div></div>
+  <div class="card stat"><div class="ico">{{ icon('clip') }}</div><div><strong>{{ stats.approved_total }}</strong><span class="l">Approved, all time</span></div></div>
+  <div class="card stat R"><div class="ico">{{ icon('shield') }}</div><div><strong>{{ stats.denied_today }}</strong><span class="l">Denied access today</span></div></div>
+</section>
+{% endblock %}

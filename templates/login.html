@@ -1,0 +1,34 @@
+{% extends 'base.html' %}{% from '_macros.html' import icon, flashes with context %}
+{% block title %}Log in{% endblock %}
+{% block public %}
+<div class="auth">
+  <section class="hero" aria-label="About PUP SmartRoom">
+    <a class="brand" href="{{ url_for('auth.login') }}"><span class="logo">{{ icon('star') }}</span><span>PUP · SMARTROOM</span></a>
+    <div>
+      <h1>PUP Smart Room Reservation &amp; IoT Access System</h1>
+      <p class="tag">Secure Rooms, Smart Access, A Smarter PUP</p>
+      <p class="mt-2 hide-sm">Find a room, request a reservation, and use your room’s QR code to confirm your booking.</p>
+    </div>
+    <div class="legend" aria-label="Room status colors">
+      <span><i class="dot-g"></i>Available</span><span><i class="dot-r"></i>Occupied</span>
+      <span><i class="dot-y"></i>Reserved</span><span><i class="dot-n"></i>Maintenance</span></div>
+  </section>
+  <section class="auth-form"><main id="main" class="auth-card">
+    {{ flashes() }}
+    <form class="card grid" method="post" action="{{ url_for('auth.login') }}" novalidate>
+      {{ csrf_field() }}<input type="hidden" name="next" value="{{ next or '' }}">
+      <div><h1>Welcome back!</h1><p class="muted mt-1">Sign in to reserve rooms and manage your bookings.</p></div>
+      <div class="field"><label for="user_id">User ID or email</label><input id="user_id" name="user_id" type="text" required autocomplete="username" autofocus></div>
+      <div class="field"><label for="password">Password</label>
+        <div class="pw"><input id="password" name="password" type="password" required autocomplete="current-password">
+          <button type="button" data-toggle-pw="password" aria-label="Show password" aria-pressed="false">{{ icon('eye') }}</button></div></div>
+      <button class="btn block" type="submit">Log in</button>
+      {% if config.ALLOW_REGISTRATION %}<p class="muted small center">New here? <a href="{{ url_for('auth.register') }}">Create an account</a></p>{% endif %}
+      {% if show_demo %}<div class="demo-box"><strong>Local demo accounts</strong> (password <span class="mono">DemoPass123!</span>)<br>
+        Student: <span class="mono">DEMO-STU-001</span> · Professor: <span class="mono">DEMO-PROF-001</span> · Administrator: <span class="mono">DEMO-ADM-001</span><br>
+        <span class="small">For local testing only — never used on a public deployment.</span></div>{% endif %}
+    </form>
+    <p class="muted small center">Prototype system: room access is simulated; no physical doors are controlled.</p>
+  </main></section>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}{% from '_macros.html' import icon, room_badge, pager, empty with context %}
+{% block title %}Manage rooms{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Manage rooms</h1><p>Update room details, status and QR codes.</p></div><a class="btn gold" href="{{ url_for('admin.room_new') }}">{{ icon('plus') }}Add room</a></div>
+<form class="card filters" method="get" action="{{ url_for('admin.rooms') }}" aria-label="Room filters">
+  <div class="field"><label for="q">Search</label><input id="q" type="search" name="q" value="{{ f.q }}" placeholder="Room, name or building"></div>
+  <div class="field"><label for="campus">Campus</label><select id="campus" name="campus" data-autosubmit><option value="">All campuses</option>{% for c in campuses %}<option value="{{ c.id }}" {{ 'selected' if f.campus == c.id|string }}>{{ c.name }}</option>{% endfor %}</select></div>
+  <div class="field"><label for="status">Status</label><select id="status" name="status" data-autosubmit><option value="">Any status</option>{% for s in room_statuses %}<option {{ 'selected' if f.status == s }}>{{ s }}</option>{% endfor %}</select></div>
+  <div class="actions"><button class="btn" type="submit">{{ icon('search') }}Filter</button><a class="btn ghost" href="{{ url_for('admin.rooms') }}">Reset</a></div></form>
+<section class="card flush mt-2">{% if rooms %}<div class="table-wrap"><table><thead><tr><th>Room</th><th>Location</th><th>Cap.</th><th>Status</th><th>Change status</th><th>Actions</th></tr></thead><tbody>
+{% for r in rooms %}<tr><td><strong>{{ r.room_number }}</strong> · {{ r.name }}</td><td>{{ r.building }}<div class="muted small">{{ r.campus_name }}</div></td><td>{{ r.capacity }}</td>
+  <td>{{ room_badge(r.status) }}{% if r.status_source == 'manual' %}<div class="muted small">set manually</div>{% endif %}</td>
+  <td><form class="flex gap-1 items-center" method="post" action="{{ url_for('admin.room_status', rid=r.id) }}" data-confirm="Change the status of room {{ r.room_number }}? The change is recorded in the status history." data-confirm-title="Change room status" data-confirm-label="Change status" data-confirm-style="no">
+    {{ csrf_field() }}<input type="hidden" name="back" value="{{ request.full_path.rstrip('?') }}">
+    <label class="sr-only" for="st{{ r.id }}">Status for room {{ r.room_number }}</label><select id="st{{ r.id }}" name="status" class="compact">{% for s in room_statuses %}<option {{ 'selected' if r.status == s }}>{{ s }}</option>{% endfor %}</select>
+    <label class="sr-only" for="nt{{ r.id }}">Note</label><input id="nt{{ r.id }}" name="note" type="text" maxlength="200" placeholder="Note (optional)" class="compact"><button class="btn sm" type="submit">Update</button></form></td>
+  <td class="nowrap"><a class="btn ghost sm" href="{{ url_for('admin.room_edit', rid=r.id) }}">{{ icon('edit') }}Edit</a> <a class="btn ghost sm" href="{{ url_for('admin.room_qr', rid=r.id) }}">{{ icon('qr') }}QR</a></td></tr>{% endfor %}
+</tbody></table></div>{% else %}{{ empty('No rooms found','Add a room or change your filters.','building') }}{% endif %}</section>
+{{ pager(pg, 'admin.rooms') }}
+{% endblock %}

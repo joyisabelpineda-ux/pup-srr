@@ -1,0 +1,25 @@
+{% extends 'base.html' %}{% from '_macros.html' import icon, flashes with context %}
+{% block title %}Create account{% endblock %}
+{% block public %}
+<div class="auth-form"><main id="main" class="auth-card wide">
+  {{ flashes() }}
+  <form class="card grid" method="post" action="{{ url_for('auth.register') }}" novalidate>
+    {{ csrf_field() }}
+    <div><h1>Create your account</h1><p class="muted mt-1">Register to reserve rooms. Registration does not verify PUP enrollment or employment.</p></div>
+    <div class="form-grid">
+      <div class="field"><label for="full_name">Full name</label><input id="full_name" name="full_name" type="text" required maxlength="120" autocomplete="name" value="{{ form.full_name or '' }}"></div>
+      <div class="field"><label for="user_id">User ID</label><input id="user_id" name="user_id" type="text" required minlength="3" maxlength="40" autocomplete="username" value="{{ form.user_id or '' }}"><span class="hint">Letters, numbers, dot, dash, underscore.</span></div>
+      <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" required maxlength="160" autocomplete="email" value="{{ form.email or '' }}"></div>
+      <div class="field"><label for="role">Role</label><select id="role" name="role">{% for r in roles %}<option {{ 'selected' if form.role == r }}>{{ r }}</option>{% endfor %}</select></div>
+      {% if campuses %}<div class="field full"><label for="campus_id">Campus</label><select id="campus_id" name="campus_id" required><option value="">Select campus</option>
+        {% for c in campuses %}<option value="{{ c.id }}" {{ 'selected' if form.campus_id == c.id|string }}>{{ c.name }}</option>{% endfor %}</select></div>{% endif %}
+      <div class="field"><label for="department">Department / college <span class="muted">(optional)</span></label><input id="department" name="department" type="text" maxlength="120" value="{{ form.department or '' }}"></div>
+      <div class="field"><label for="program">Program / course <span class="muted">(optional)</span></label><input id="program" name="program" type="text" maxlength="120" value="{{ form.program or '' }}"></div>
+      <div class="field"><label for="password">Password</label><div class="pw"><input id="password" name="password" type="password" required minlength="{{ config.PASSWORD_MIN_LENGTH }}" autocomplete="new-password"><button type="button" data-toggle-pw="password" aria-label="Show password" aria-pressed="false">{{ icon('eye') }}</button></div>
+        <span class="hint">At least {{ config.PASSWORD_MIN_LENGTH }} characters with letters and numbers.</span></div>
+      <div class="field"><label for="password2">Confirm password</label><input id="password2" name="password2" type="password" required autocomplete="new-password"></div>
+    </div>
+    <button class="btn block" type="submit">Create account</button>
+    <p class="muted small center">Already registered? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+  </form></main></div>
+{% endblock %}

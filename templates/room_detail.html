@@ -1,0 +1,22 @@
+{% extends 'base.html' %}{% from '_macros.html' import icon, room_badge, badge, empty with context %}
+{% block title %}Room {{ room.room_number }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Room {{ room.room_number }} · {{ room.name }}</h1><p>{{ room.building }} · {{ room.campus_name }}</p></div>
+  <div class="flex gap-2 wrap">{% if room.status != 'Under Maintenance' %}<a class="btn gold" href="{{ url_for('main.reserve', room_id=room.id) }}">{{ icon('calendar') }}Reserve this room</a>{% endif %}
+  <a class="btn ghost" href="{{ url_for('main.rooms') }}">Back to rooms</a></div></div>
+<div class="grid g2">
+  <section class="card"><h2 class="mb-2">Details</h2>
+    <dl class="dl"><dt>Status</dt><dd>{{ room_badge(room.status) }}</dd><dt>Capacity</dt><dd>{{ room.capacity }} people</dd>
+      <dt>Building</dt><dd>{{ room.building }}</dd><dt>Campus</dt><dd>{{ room.campus_name }}{% if room.campus_is_demo %} <span class="muted small">(demo data)</span>{% endif %}</dd>
+      {% if room.features %}<dt>Features</dt><dd class="chips">{% for f in room.features.split(',') %}{% if f.strip() %}<span class="chip">{{ f.strip() }}</span>{% endif %}{% endfor %}</dd>{% endif %}
+      {% if room.description %}<dt>About</dt><dd>{{ room.description }}</dd>{% endif %}
+      <dt>Next booking</dt><dd>{% if next %}{{ next.start_at|dt }} – {{ next.end_at|tfmt }}{% else %}None scheduled{% endif %}</dd>
+      <dt>Last updated</dt><dd>{{ room.updated_at|dt }}</dd></dl>
+    {% if room.status == 'Under Maintenance' %}<p class="notice mt-2">This room is under maintenance and cannot be reserved right now.</p>{% endif %}</section>
+  <section class="card"><h2 class="mb-2">Schedule (next 14 days)</h2>
+    {% if slots %}<ul class="plain grid">{% for s in slots %}<li class="flex between gap-2"><span><strong>{{ s.start_at|dfmt }}</strong><br><span class="muted small">{{ s.start_at|tfmt }} – {{ s.end_at|tfmt }}</span></span>
+      {{ badge('Booked' if s.status == 'Approved' else 'Pending request', 'R' if s.status == 'Approved' else 'Y') }}</li>{% endfor %}</ul>
+    {% else %}{{ empty('Wide open','No bookings in the next 14 days.','calendar') }}{% endif %}
+    <p class="muted small mt-2">Times marked “Pending request” are waiting for administrator approval and also block overlapping requests.</p></section>
+</div>
+{% endblock %}

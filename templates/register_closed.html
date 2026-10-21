@@ -1,0 +1,4 @@
+{% extends 'base.html' %}{% from '_macros.html' import empty %}
+{% block title %}Registration closed{% endblock %}
+{% block content %}<section class="card">{{ empty('Registration is closed','Accounts are created by an administrator. Please contact your system administrator.','shield') }}
+<p class="center"><a class="btn" href="{{ url_for('auth.login') }}">Back to login</a></p></section>{% endblock %}

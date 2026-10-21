@@ -1,0 +1,21 @@
+{% extends 'base.html' %}{% from '_macros.html' import icon, room_card, pager, empty with context %}
+{% block title %}Browse rooms{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Browse rooms</h1><p>Search by campus, building, capacity or check who is free at a specific time.</p></div></div>
+<form class="card filters" method="get" action="{{ url_for('main.rooms') }}" aria-label="Room filters">
+  <div class="field"><label for="q">Search</label><input id="q" type="search" name="q" value="{{ f.q }}" placeholder="Room number or name"></div>
+  <div class="field"><label for="campus">Campus</label><select id="campus" name="campus"><option value="">All campuses</option>{% for c in campuses %}<option value="{{ c.id }}" {{ 'selected' if f.campus == c.id|string }}>{{ c.name }}</option>{% endfor %}</select></div>
+  <div class="field"><label for="building">Building</label><select id="building" name="building"><option value="">All buildings</option>{% for b in buildings %}<option {{ 'selected' if f.building == b }}>{{ b }}</option>{% endfor %}</select></div>
+  <div class="field"><label for="status">Status</label><select id="status" name="status"><option value="">Any status</option>{% for s in room_statuses %}<option {{ 'selected' if f.status == s }}>{{ s }}</option>{% endfor %}</select></div>
+  <div class="field"><label for="min_capacity">Min. capacity</label><input id="min_capacity" type="number" min="0" max="2000" name="min_capacity" value="{{ f.min_capacity }}"></div>
+  <div class="field"><label for="date">Free on date</label><input id="date" type="date" name="date" value="{{ f.date }}"></div>
+  <div class="field"><label for="start">From</label><input id="start" type="time" name="start" value="{{ f.start }}"></div>
+  <div class="field"><label for="end">Until</label><input id="end" type="time" name="end" value="{{ f.end }}"></div>
+  <div class="actions"><button class="btn" type="submit">{{ icon('search') }}Apply</button><a class="btn ghost" href="{{ url_for('main.rooms') }}">Reset</a></div>
+</form>
+{% if note %}<p class="notice mt-2">{{ note }}</p>{% endif %}
+<div class="mt-2">
+{% if rooms %}<div class="rooms">{% for r in rooms %}{{ room_card(r) }}{% endfor %}</div>{{ pager(pg, 'main.rooms') }}
+{% else %}<div class="card">{{ empty('No rooms match your filters','Try removing a filter or choosing a different time.','search') }}</div>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% from '_macros.html' import icon, flashes with context %}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>{% block title %}PUP Smart Room Reservation{% endblock %} · PUP SRR</title>
+<link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+{% if current_user %}
+{% set ep = request.endpoint or '' %}
+{% macro nav(endpoint, label, ico, prefix=None) %}<a href="{{ url_for(endpoint) }}" {% if ep == endpoint or (prefix and ep.startswith(prefix)) %}aria-current="page"{% endif %}>{{ icon(ico) }}<span>{{ label }}</span></a>{% endmacro %}
+<div class="shell">
+  <div class="topbar no-print"><button type="button" id="menu-btn" aria-label="Open navigation menu" aria-controls="sidebar" aria-expanded="false">{{ icon('menu') }}</button><strong>PUP SmartRoom</strong></div>
+  <div class="backdrop" id="backdrop"></div>
+  <aside class="sidebar no-print" id="sidebar" aria-label="Main navigation">
+    <a class="brand" href="{{ url_for('auth.index') }}"><span class="logo">{{ icon('star') }}</span><span>PUP SmartRoom<small>Room Reservation</small></span></a>
+    <nav class="nav">
+      {% if is_admin %}
+      <div class="nav-label">Administration</div>
+      {{ nav('admin.overview','Overview','activity') }}
+      {{ nav('admin.rooms','Manage rooms','building','admin.room') }}
+      {{ nav('admin.reservations','Reservations','clip') }}
+      {{ nav('admin.users','Users','users') }}
+      {{ nav('admin.history','Room status history','history') }}
+      {{ nav('admin.access_logs','Access logs','shield') }}
+      {{ nav('admin.audit_logs','Audit logs','list') }}
+      {{ nav('admin.reports','Reports (CSV)','download') }}
+      <div class="nav-label">My account</div>
+      {% else %}
+      {{ nav('main.dashboard','Dashboard','home') }}
+      {% endif %}
+      {{ nav('main.rooms','Browse rooms','search','main.room_detail') }}
+      {{ nav('main.reserve','Reserve a room','calendar') }}
+      {{ nav('main.reservations','My reservations','clip','main.reservation_detail') }}
+      {{ nav('main.profile','Profile','user') }}
+    </nav>
+    <div class="side-foot">
+      <div><strong>{{ current_user.full_name }}</strong></div>
+      <div class="muted">{{ current_user.role }}</div>
+      <form method="post" action="{{ url_for('auth.logout') }}" class="mt-1" data-no-loading>{{ csrf_field() }}
+        <div class="nav"><button type="submit">{{ icon('logout') }}<span>Log out</span></button></div></form>
+    </div>
+  </aside>
+  <div class="main"><main id="main" class="content" tabindex="-1">{{ flashes() }}{% block content %}{% endblock %}</main></div>
+</div>
+{% else %}
+{% block public %}<div class="auth-form"><main id="main" class="auth-card">{{ flashes() }}{{ self.content() }}</main></div>{% endblock %}
+{% endif %}
+<dialog id="confirm-dialog" aria-labelledby="cd-title" aria-describedby="cd-text">
+  <form method="dialog"><h2 id="cd-title">Please confirm</h2><p id="cd-text" class="muted"></p>
+    <div class="actions"><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn danger" value="ok" id="cd-ok">Confirm</button></div></form>
+</dialog>
+<script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}{% from '_macros.html' import icon %}
+{% block title %}Reserve a room{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Request a room reservation</h1><p>Requests start as <strong>Pending</strong> until an administrator approves them.</p></div></div>
+<div class="grid g2">
+<form class="card grid" method="post" action="{{ url_for('main.reserve') }}" novalidate>
+  {{ csrf_field() }}
+  <div class="field"><label for="room_id">Room</label><select id="room_id" name="room_id" required><option value="">Select a room</option>
+    {% for r in rooms %}<option value="{{ r.id }}" {{ 'selected' if form.room_id == r.id|string }}>{{ r.room_number }} · {{ r.name }} — {{ r.building }} ({{ r.campus_name }}), cap. {{ r.capacity }}</option>{% endfor %}</select></div>
+  <div class="form-grid">
+    <div class="field full"><label for="date">Date</label><input id="date" name="date" type="date" required min="{{ limits.today }}" max="{{ limits.max_date }}" value="{{ form.date }}"></div>
+    <div class="field"><label for="start">Start time</label><input id="start" name="start" type="time" required value="{{ form.start }}"></div>
+    <div class="field"><label for="end">End time</label><input id="end" name="end" type="time" required value="{{ form.end }}"></div></div>
+  <div class="field"><label for="purpose">Purpose</label><textarea id="purpose" name="purpose" rows="3" maxlength="300" required placeholder="Group study, consultation, project meeting…">{{ form.purpose }}</textarea><span class="hint">3–300 characters.</span></div>
+  <button class="btn block" type="submit">{{ icon('calendar') }}Submit reservation request</button>
+</form>
+<aside class="card"><h2 class="mb-2">Booking rules</h2>
+  <ul class="grid bullets">
+    <li>Rooms can be booked between <strong>{{ '%02d' % limits.open }}:00</strong> and <strong>{{ '%02d' % limits.close }}:00</strong>, on a single day.</li>
+    <li>Minimum length {{ limits.min_minutes }} minutes; maximum <strong>{{ limits.max_hours }} hours</strong> for your account type.</li>
+    <li>Up to {{ limits.advance }} days in advance. Past times are rejected.</li>
+    <li>Overlapping requests for the same room are rejected.</li>
+    <li>You can cancel a reservation any time before it starts.</li></ul>
+  <p class="notice mt-2">Rooms under maintenance are not listed.</p></aside>
+</div>
+{% endblock %}
