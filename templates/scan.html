@@ -13,8 +13,12 @@
   {% else %}
   <p class="mt-2">You are signed in as <strong>{{ current_user.full_name }}</strong>. Validate your reservation for this room:</p>
   <form class="mt-2" method="post" action="{{ url_for('main.scan_authorize', token=request.view_args.token) }}">{{ csrf_field() }}<button class="btn gold" type="submit">{{ icon('shield') }}Validate my reservation</button></form>
-  <p class="notice mt-2">Access requires an <strong>approved reservation that is active right now</strong> for this room. Authorization is simulated; no door is unlocked.</p>
-  {% endif %}
+  <p class="notice mt-2"><p class="notice mt-2">
+  Access requires an approved reservation that is active right now.
+  Check in within 15 minutes after your reservation starts, or the
+  reservation will be released for walk-ins. Authorization is
+  simulated; no door is unlocked.
+</p>
   <div class="flex gap-2 wrap mt-3"><a class="btn ghost" href="{{ url_for('main.reservations') }}">My reservations</a><a class="btn ghost" href="{{ url_for('auth.index') }}">Dashboard</a></div>
 </section>
 {% endblock %}
