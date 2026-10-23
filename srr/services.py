@@ -296,6 +296,57 @@ def room_slots_today(db, room_id, days=7):
         ORDER BY b.start_at""", (room_id, iso(now()), iso(now() + timedelta(days=days)))).fetchall()
 
 
+def release_unclaimed_reservations(db):
+    """Release approved reservations 15 minutes after start if not checked in."""
+    current_time = now()
+    cutoff = iso(current_time - timedelta(minutes=15))
+    stamp = iso(current_time)
+    released = 0
+
+    with transaction(db):
+        rows = db.execute("""
+            SELECT id
+            FROM reservations
+            WHERE status = 'Approved'
+              AND checked_in_at IS NULL
+              AND start_at <= ?
+              AND end_at > ?
+        """, (cutoff, stamp)).fetchall()
+
+        for row in rows:
+            rid = row["id"]
+            note = (
+                "Automatically released: no QR check-in "
+                "within 15 minutes of reservation start."
+            )
+
+            changed = db.execute("""
+                UPDATE reservations
+                SET status = 'Cancelled',
+                    cancelled_at = ?,
+                    cancelled_by = NULL,
+                    review_note = ?
+                WHERE id = ?
+                  AND status = 'Approved'
+                  AND checked_in_at IS NULL
+            """, (stamp, note, rid)).rowcount
+
+            if changed:
+                audit(
+                    db,
+                    "reservation_auto_released",
+                    "reservation",
+                    rid,
+                    note,
+                    actor_id=None,
+                )
+                released += 1
+
+    if released:
+        refresh_room_statuses(db, force=True)
+
+    return released
+
 # ------------------------------------------------------------------ QR authorization
 def authorize_room_access(db, user, room):
     """Decide (simulated) room access for `user`. Returns (granted, reason, reservation)."""
