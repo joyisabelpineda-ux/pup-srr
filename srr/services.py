@@ -350,25 +350,37 @@ def release_unclaimed_reservations(db):
 # ------------------------------------------------------------------ QR authorization
 def authorize_room_access(db, user, room):
     """Decide (simulated) room access for `user`. Returns (granted, reason, reservation)."""
+ release_unclaimed_reservations(db)
     n = iso(now())
     if room["status"] == "Under Maintenance":
         return False, "This room is under maintenance. Access is not allowed.", None
     active = db.execute("""SELECT * FROM reservations WHERE room_id=? AND user_id=? AND status='Approved'
                            AND start_at<=? AND end_at>? ORDER BY start_at LIMIT 1""",
                         (room["id"], user["id"], n, n)).fetchone()
-    if active:
-        return True, f"Approved reservation #{active['id']} is active ({fmt_time(active['start_at'])}–{fmt_time(active['end_at'])}).", active
-    cutoff = iso(now() - timedelta(hours=24))
-    near = db.execute("""SELECT * FROM reservations WHERE room_id=? AND user_id=? AND end_at>? 
-                         ORDER BY CASE status WHEN 'Approved' THEN 0 WHEN 'Pending' THEN 1 ELSE 2 END, start_at LIMIT 1""",
-                      (room["id"], user["id"], cutoff)).fetchone()
-    if not near:
-        return False, "You do not have an approved reservation for this room at this time.", None
-    if near["status"] == "Approved":
-        if near["end_at"] <= n:
-            return False, f"Your reservation for this room has expired (it ended {fmt_dt(near['end_at'])}).", near
-        return False, f"Your reservation is not active yet. It starts {fmt_dt(near['start_at'])}.", near
-    msgs = {"Pending": "Your reservation request is still pending approval.",
-            "Rejected": "Your reservation request for this room was rejected.",
-            "Cancelled": "Your reservation for this room was cancelled."}
-    return False, msgs[near["status"]], near
+   
+if active:
+    if not active["checked_in_at"]:
+        stamp = iso(now())
+
+        with transaction(db):
+            db.execute("""
+                UPDATE reservations
+                SET checked_in_at = ?
+                WHERE id = ?
+                  AND status = 'Approved'
+                  AND checked_in_at IS NULL
+            """, (stamp, active["id"]))
+
+            audit(
+                db,
+                "reservation_checked_in",
+                "reservation",
+                active["id"],
+                "Successful QR check-in",
+            )
+
+    return True, (
+        f"Reservation #{active['id']} is active. "
+        "QR check-in recorded."
+    ), active
+
