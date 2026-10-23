@@ -45,6 +45,7 @@ def create_app(overrides=None):
             return None
         security.load_user()
         security.ensure_csrf()
+      services.release_unclaimed_reservations(dbm.get_db())
         if request.method in ("POST", "PUT", "PATCH", "DELETE"):
             security.check_csrf()
         if g.user and request.method == "GET":
