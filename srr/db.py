@@ -152,17 +152,18 @@ def _m2_features(c):
 def _m3_qr_checkin(c):
     """Store when each reservation was checked in."""
     _add_column(c, "reservations", "checked_in_at", "TEXT")
-    c.execute("""
+      c.execute("""
         CREATE INDEX IF NOT EXISTS idx_res_no_show
         ON reservations(status, start_at, checked_in_at)
     """)
-   MIGRATIONS = [
+
+
+MIGRATIONS = [
     (1, _m1_baseline),
     (2, _m2_features),
     (3, _m3_qr_checkin),
 ]
 LATEST_VERSION = MIGRATIONS[-1][0]
-
 def migrate(conn, db_path=None):
     """Bring the schema to LATEST_VERSION without touching existing rows.
 
