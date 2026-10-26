@@ -149,10 +149,11 @@ def _m2_features(c):
         WHEN NEW.capacity<0 OR NEW.capacity>2000
         BEGIN SELECT RAISE(ABORT,'invalid room capacity'); END""")
 
+
 def _m3_qr_checkin(c):
     """Store when each reservation was checked in."""
     _add_column(c, "reservations", "checked_in_at", "TEXT")
-      c.execute("""
+    c.execute("""
         CREATE INDEX IF NOT EXISTS idx_res_no_show
         ON reservations(status, start_at, checked_in_at)
     """)
@@ -164,6 +165,8 @@ MIGRATIONS = [
     (3, _m3_qr_checkin),
 ]
 LATEST_VERSION = MIGRATIONS[-1][0]
+
+
 def migrate(conn, db_path=None):
     """Bring the schema to LATEST_VERSION without touching existing rows.
 
