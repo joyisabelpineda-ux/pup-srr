@@ -161,9 +161,7 @@ def _m3_qr_checkin(c):
     (2, _m2_features),
     (3, _m3_qr_checkin),
 ]
-
 LATEST_VERSION = MIGRATIONS[-1][0]
-
 
 def migrate(conn, db_path=None):
     """Bring the schema to LATEST_VERSION without touching existing rows.
