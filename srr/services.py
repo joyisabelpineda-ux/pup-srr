@@ -289,6 +289,45 @@ def display_status(res):
     return s
 
 
+def release_unclaimed_reservations(db):
+    """Cancel approved reservations not checked in within 15 minutes of their start.
+
+    This is request-triggered: it runs whenever the app receives a request. A hosted
+    background scheduler is needed if releases must occur at the exact minute while
+    the website receives no traffic.
+    """
+    cutoff = iso(now() - timedelta(minutes=15))
+    stamp = iso(now())
+    released = 0
+    with transaction(db):
+        rows = db.execute("""SELECT id, user_id, room_id, start_at, end_at FROM reservations
+            WHERE status='Approved' AND checked_in_at IS NULL AND start_at<=?
+            ORDER BY start_at""", (cutoff,)).fetchall()
+        for res in rows:
+            note = "Automatically released: no QR check-in within 15 minutes of reservation start."
+            changed = db.execute("""UPDATE reservations
+                SET status='Cancelled', cancelled_at=?, cancelled_by=NULL, review_note=?
+                WHERE id=? AND status='Approved' AND checked_in_at IS NULL""",
+                (stamp, note, res['id'])).rowcount
+            if not changed:
+                continue
+            # This is a system event, so actor_id is deliberately NULL (not the current visitor).
+            db.execute("""INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,occurred_at,details)
+                VALUES(NULL,'reservation_auto_released','reservation',?,?,?)""",
+                (res['id'], stamp, note))
+            db.execute("""INSERT INTO access_logs(user_id,room_id,reservation_id,occurred_at,method,result,
+                event_type,reason,campus_name,building,user_name_snapshot,user_role_snapshot)
+                SELECT ?, ?, ?, ?, 'System', 'Pending', 'System event', ?, c.name, r.building,
+                       COALESCE(u.full_name,'Unknown'), COALESCE(u.role,'Unknown')
+                FROM rooms r JOIN campuses c ON c.id=r.campus_id JOIN users u ON u.id=?
+                WHERE r.id=?""",
+                (res['user_id'], res['room_id'], res['id'], stamp, note, res['user_id'], res['room_id']))
+            released += 1
+    if released:
+        refresh_room_statuses(db, force=True)
+    return released
+
+
 def room_slots_today(db, room_id, days=7):
     """Upcoming approved/pending slots for the room schedule widget."""
     return db.execute("""SELECT b.start_at,b.end_at,b.status FROM reservations b
@@ -296,91 +335,39 @@ def room_slots_today(db, room_id, days=7):
         ORDER BY b.start_at""", (room_id, iso(now()), iso(now() + timedelta(days=days)))).fetchall()
 
 
-def release_unclaimed_reservations(db):
-    """Release approved reservations 15 minutes after start if not checked in."""
-    current_time = now()
-    cutoff = iso(current_time - timedelta(minutes=15))
-    stamp = iso(current_time)
-    released = 0
-
-    with transaction(db):
-        rows = db.execute("""
-            SELECT id
-            FROM reservations
-            WHERE status = 'Approved'
-              AND checked_in_at IS NULL
-              AND start_at <= ?
-              AND end_at > ?
-        """, (cutoff, stamp)).fetchall()
-
-        for row in rows:
-            rid = row["id"]
-            note = (
-                "Automatically released: no QR check-in "
-                "within 15 minutes of reservation start."
-            )
-
-            changed = db.execute("""
-                UPDATE reservations
-                SET status = 'Cancelled',
-                    cancelled_at = ?,
-                    cancelled_by = NULL,
-                    review_note = ?
-                WHERE id = ?
-                  AND status = 'Approved'
-                  AND checked_in_at IS NULL
-            """, (stamp, note, rid)).rowcount
-
-            if changed:
-                audit(
-                    db,
-                    "reservation_auto_released",
-                    "reservation",
-                    rid,
-                    note,
-                    actor_id=None,
-                )
-                released += 1
-
-    if released:
-        refresh_room_statuses(db, force=True)
-
-    return released
-
 # ------------------------------------------------------------------ QR authorization
 def authorize_room_access(db, user, room):
-    """Decide (simulated) room access for `user`. Returns (granted, reason, reservation)."""
- release_unclaimed_reservations(db)
+    """Validate and record a QR check-in for an active approved reservation."""
+    release_unclaimed_reservations(db)
     n = iso(now())
     if room["status"] == "Under Maintenance":
         return False, "This room is under maintenance. Access is not allowed.", None
     active = db.execute("""SELECT * FROM reservations WHERE room_id=? AND user_id=? AND status='Approved'
                            AND start_at<=? AND end_at>? ORDER BY start_at LIMIT 1""",
                         (room["id"], user["id"], n, n)).fetchone()
-   
-if active:
-    if not active["checked_in_at"]:
-        stamp = iso(now())
-
-        with transaction(db):
-            db.execute("""
-                UPDATE reservations
-                SET checked_in_at = ?
-                WHERE id = ?
-                  AND status = 'Approved'
-                  AND checked_in_at IS NULL
-            """, (stamp, active["id"]))
-
-            audit(
-                db,
-                "reservation_checked_in",
-                "reservation",
-                active["id"],
-                "Successful QR check-in",
-            )
-
-    return True, (
-        f"Reservation #{active['id']} is active. "
-        "QR check-in recorded."
-    ), active
-
+    if active:
+        if not active["checked_in_at"]:
+            stamp = iso(now())
+            with transaction(db):
+                changed = db.execute("""UPDATE reservations SET checked_in_at=?
+                    WHERE id=? AND status='Approved' AND checked_in_at IS NULL""",
+                    (stamp, active["id"])).rowcount
+                if changed:
+                    audit(db, "reservation_checked_in", "reservation", active["id"],
+                          "Successful QR check-in", actor_id=user["id"])
+            active = db.execute("SELECT * FROM reservations WHERE id=?", (active["id"],)).fetchone()
+        return True, f"Approved reservation #{active['id']} is active ({fmt_time(active['start_at'])}–{fmt_time(active['end_at'])}). Check-in recorded.", active
+    cutoff = iso(now() - timedelta(hours=24))
+    near = db.execute("""SELECT * FROM reservations WHERE room_id=? AND user_id=? AND end_at>? 
+                         ORDER BY CASE status WHEN 'Approved' THEN 0 WHEN 'Pending' THEN 1 ELSE 2 END, start_at LIMIT 1""",
+                      (room["id"], user["id"], cutoff)).fetchone()
+    if not near:
+        return False, "You do not have an approved reservation for this room at this time.", None
+    if near["status"] == "Approved":
+        if near["end_at"] <= n:
+            return False, f"Your reservation for this room has expired (it ended {fmt_dt(near['end_at'])}).", near
+        return False, f"Your reservation is not active yet. It starts {fmt_dt(near['start_at'])}.", near
+    msgs = {"Pending": "Your reservation request is still pending approval.",
+            "Rejected": "Your reservation request for this room was rejected.",
+            "Cancelled": "Your reservation for this room was cancelled."}
+    return False, msgs[near["status"]], near

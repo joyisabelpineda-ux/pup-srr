@@ -5,7 +5,7 @@
 <section class="card narrow center-card">
   <h2>{{ room.building }} · Room {{ room.room_number }} — {{ room.name }}</h2><p class="muted">{{ room.campus_name }}</p>
   <div class="qr mt-2 center-block"><img src="{{ url_for('admin.room_qr_png', rid=room.id) }}" width="280" height="280" alt="QR code that opens the access page for room {{ room.room_number }}"></div>
-  <p class="mt-2 small">Scan with a phone camera, log in, then validate your reservation.</p>
+  <p class="mt-2 small">Scan with a phone camera, log in, then validate your reservation. Approved users must check in within 15 minutes of the reservation start time.</p>
   <p class="mono muted mt-1 no-print">{{ url }}</p>
   <div class="flex gap-2 wrap mt-2 no-print center-row"><button class="btn" type="button" data-print>{{ icon('file') }}Print</button>
     <form method="post" action="{{ url_for('admin.room_qr_regenerate', rid=room.id) }}" data-confirm="Generate a new QR code for room {{ room.room_number }}? Any printed QR code will stop working until replaced." data-confirm-title="Regenerate QR code" data-confirm-label="Regenerate">{{ csrf_field() }}<button class="btn ghost" type="submit">Regenerate code</button></form></div>

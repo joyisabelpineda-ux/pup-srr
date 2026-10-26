@@ -55,3 +55,11 @@ so a forgotten password is reset by an administrator (**Users → Reset password
 - Door/IoT hardware is not integrated; access results are simulated.
 - Free-tier SQLite persistence is not possible on Render (see above).
 - Visual layout was written to be responsive but was **not visually inspected in a browser** in my environment; please check it on your devices.
+
+## QR check-in and 15-minute no-show release
+
+- Room QR images use high error correction for improved print/scan tolerance. If an administrator regenerates a room QR code, replace the printed copy because the old token is revoked.
+- A successful QR authorization for an active approved reservation records `checked_in_at` and writes audit/access log entries.
+- Approved reservations with no recorded check-in are changed to `Cancelled` once their start time is at least 15 minutes in the past. The reservation slot is then available again, and a system audit/access event is recorded.
+- This release logic runs when the app receives a request. It is not a background timer, so on an idle service the database update may wait until the next request. Exact release at the deadline requires a separate scheduler/cron job and persistent database storage.
+- Schema migration 3 adds `reservations.checked_in_at` automatically on application startup. Existing reservation records are retained by the migration.

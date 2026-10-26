@@ -44,8 +44,9 @@ def create_app(overrides=None):
         if request.endpoint == "static":
             return None
         security.load_user()
-        security.ensure_csrf()
+        # Apply the 15-minute no-show rule on incoming traffic, including anonymous visits.
         services.release_unclaimed_reservations(dbm.get_db())
+        security.ensure_csrf()
         if request.method in ("POST", "PUT", "PATCH", "DELETE"):
             security.check_csrf()
         if g.user and request.method == "GET":

@@ -195,23 +195,15 @@ def room_qr_png(rid):
         import qrcode
     except ImportError:  # pragma: no cover
         abort(501)
-   
-    # Generate a clear QR code with high error correction.
-    qr = qrcode.QRCode(
-        version=None,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=10,
-        border=4,
-    )
+    # High error correction helps printed codes remain readable if slightly scuffed.
+    qr = qrcode.QRCode(version=None, error_correction=qrcode.constants.ERROR_CORRECT_H,
+                       box_size=10, border=4)
     qr.add_data(scan_url(room["qr_token"]))
     qr.make(fit=True)
-
     img = qr.make_image(fill_color="black", back_color="white")
-
     out = io.BytesIO()
     img.save(out, format="PNG", optimize=True)
     out.seek(0)
-
     resp = send_file(out, mimetype="image/png", max_age=0)
     resp.headers["Cache-Control"] = "no-store, max-age=0"
     resp.headers["X-Content-Type-Options"] = "nosniff"
