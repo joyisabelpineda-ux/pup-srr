@@ -151,9 +151,18 @@ def _m2_features(c):
 
 
 def _m3_qr_checkin(c):
+<<<<<<< HEAD
     """Track successful check-ins for the 15-minute no-show release policy."""
     _add_column(c, "reservations", "checked_in_at", "TEXT")
     c.execute("CREATE INDEX IF NOT EXISTS idx_res_no_show ON reservations(status,start_at,checked_in_at)")
+=======
+    """Store when each reservation was checked in."""
+    _add_column(c, "reservations", "checked_in_at", "TEXT")
+    c.execute("""
+        CREATE INDEX IF NOT EXISTS idx_res_no_show
+        ON reservations(status, start_at, checked_in_at)
+    """)
+>>>>>>> ae3cf96babc2738f2bf135f26cf6890ee595fb48
 
 
 MIGRATIONS = [
@@ -161,7 +170,10 @@ MIGRATIONS = [
     (2, _m2_features),
     (3, _m3_qr_checkin),
 ]
+<<<<<<< HEAD
 
+=======
+>>>>>>> ae3cf96babc2738f2bf135f26cf6890ee595fb48
 LATEST_VERSION = MIGRATIONS[-1][0]
 
 
@@ -173,11 +185,15 @@ def migrate(conn, db_path=None):
     version = conn.execute("PRAGMA user_version").fetchone()[0]
     if version >= LATEST_VERSION:
         return False
+<<<<<<< HEAD
 
     has_users = conn.execute(
         "SELECT 1 FROM sqlite_master WHERE type='table' AND name='users'"
     ).fetchone()
 
+=======
+    has_users = conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='users'").fetchone()
+>>>>>>> ae3cf96babc2738f2bf135f26cf6890ee595fb48
     if has_users and db_path and db_path != ":memory:" and os.path.exists(db_path):
         backup = f"{db_path}.bak-{datetime.now():%Y%m%d-%H%M%S}"
         dest = sqlite3.connect(backup)
@@ -185,6 +201,7 @@ def migrate(conn, db_path=None):
             conn.backup(dest)
         finally:
             dest.close()
+<<<<<<< HEAD
 
     conn.execute("PRAGMA journal_mode=WAL")
 
@@ -192,6 +209,12 @@ def migrate(conn, db_path=None):
         if v <= version:
             continue
 
+=======
+    conn.execute("PRAGMA journal_mode=WAL")
+    for v, fn in MIGRATIONS:
+        if v <= version:
+            continue
+>>>>>>> ae3cf96babc2738f2bf135f26cf6890ee595fb48
         conn.execute("BEGIN IMMEDIATE")
         try:
             fn(conn)
@@ -199,11 +222,18 @@ def migrate(conn, db_path=None):
         except BaseException:
             conn.execute("ROLLBACK")
             raise
+<<<<<<< HEAD
 
         conn.execute("COMMIT")
 
     return True
 
+=======
+        conn.execute("COMMIT")
+    return True
+
+
+>>>>>>> ae3cf96babc2738f2bf135f26cf6890ee595fb48
 # --------------------------------------------------------------------------- seeding
 DEMO_PASSWORD = "DemoPass123!"
 DEMO_CAMPUSES = ["PUP Main Campus (demo data)", "PUP Branch Campus (demo data)"]
