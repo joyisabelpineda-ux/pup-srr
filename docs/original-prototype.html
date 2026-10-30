@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PUP Smart Room Reservation & IoT Access System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#F4F2F0;--surface:#FFFFFF;--soft:#FCFBFA;--text:#1F1A1A;--muted:#5A5050;--border:#E4DEDB;--input:#B9AEAA;--chip:#F1ECE9;
+  --maroon:#7A1620;--maroon-d:#6E0F1B;--gold:#E8B93A;--link:#7A1620;--title:#3A0A10;--sel:#FDF1F2;--gold-soft:#FFF8E1;--gold-ink:#4F0C14;
+  --g-bg:#E3F4E8;--g-fg:#14532D;--g:#1E8E3E;--g-halo:#D6EEDD;--g-bd:#9ED3AE;
+  --r-bg:#FDE8E8;--r-fg:#8B1A1A;--r:#C62828;--r-halo:#F8D4D4;--r-bd:#EDA9A9;
+  --y-bg:#FFF3CD;--y-fg:#6B4E00;--y:#F2B300;--y-halo:#FBE9A8;
+  --n-bg:#ECECEC;--n-fg:#3F3F3F;--n:#6B6B6B;--taken:#EFEAE7;--taken-fg:#6B6B6B;--row:#EFEAE7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161012;--surface:#221A1C;--soft:#2A2124;--text:#F2EBEC;--muted:#BBAEB0;--border:#3A2E31;--input:#7A686B;--chip:#2E2528;
+    --link:#F0A0AA;--title:#F7E3E5;--sel:#3A1A1F;--gold-soft:#3A2F10;--gold-ink:#F6DFA0;
+    --g-bg:#153B24;--g-fg:#9AE6B4;--g-halo:#1C4A2E;--g-bd:#2F7A4A;
+    --r-bg:#4A1717;--r-fg:#FFB8B8;--r-halo:#5E2020;--r-bd:#8B3A3A;
+    --y-bg:#4A3A0A;--y-fg:#FFE08A;--y-halo:#5C4A10;
+    --n-bg:#343034;--n-fg:#E0DADA;--taken:#2E2528;--taken-fg:#A99DA0;--row:#33292C;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161012;--surface:#221A1C;--soft:#2A2124;--text:#F2EBEC;--muted:#BBAEB0;--border:#3A2E31;--input:#7A686B;--chip:#2E2528;
+  --link:#F0A0AA;--title:#F7E3E5;--sel:#3A1A1F;--gold-soft:#3A2F10;--gold-ink:#F6DFA0;
+  --g-bg:#153B24;--g-fg:#9AE6B4;--g-halo:#1C4A2E;--g-bd:#2F7A4A;
+  --r-bg:#4A1717;--r-fg:#FFB8B8;--r-halo:#5E2020;--r-bd:#8B3A3A;
+  --y-bg:#4A3A0A;--y-fg:#FFE08A;--y-halo:#5C4A10;
+  --n-bg:#343034;--n-fg:#E0DADA;--taken:#2E2528;--taken-fg:#A99DA0;--row:#33292C;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:15px;line-height:1.4}
+h1,h2,h3,p,dl,dd,ul,ol{margin:0}
+ul,ol{padding:0;list-style:none}
+button,input,select{font-family:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+input[type=text],input[type=email],input[type=password],select{height:48px;width:100%;border:1.5px solid var(--input);border-radius:10px;padding:0 14px;font-size:16px;background:var(--surface)}
+label{font-size:14px;font-weight:700}
+.field{display:flex;flex-direction:column;gap:8px}
+.col{display:flex;flex-direction:column}
+.row{display:flex;align-items:center}
+.wrap{flex-wrap:wrap}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px}
+.btn{height:52px;border:none;border-radius:10px;background:var(--maroon);color:#fff;font-size:16px;font-weight:700;padding:0 28px;display:flex;align-items:center;justify-content:center;gap:10px}
+.btn.ghost{background:var(--surface);color:var(--text);border:2px solid var(--input);font-size:15px;padding:0 24px}
+.btn.gold{background:var(--gold-soft);color:var(--gold-ink);border:2px solid var(--gold);font-size:15px}
+.btn:disabled{background:var(--border);color:var(--muted)}
+.link{border:none;background:none;padding:0;font-weight:700;color:var(--link);font-size:14px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:14px;font-size:13px;font-weight:700}
+.dot{display:inline-block;border-radius:50%}
+.G{background:var(--g-bg);color:var(--g-fg)}.R{background:var(--r-bg);color:var(--r-fg)}.Y{background:var(--y-bg);color:var(--y-fg)}.N{background:var(--n-bg);color:var(--n-fg)}
+.bgG{background:var(--g)}.bgR{background:var(--r)}.bgY{background:var(--y)}.bgN{background:var(--n)}
+.navb{display:flex;align-items:center;gap:12px;height:44px;padding:0 12px;border-radius:10px;border:none;background:none;color:#E9E1E2;font-weight:600;font-size:14px;width:100%;text-align:left}
+.navb:hover{background:#3A2A2D}.navb.on{background:var(--maroon);color:#fff;font-weight:700}
+.qa{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px;text-align:left}
+.qa:hover{border-color:var(--maroon);box-shadow:0 6px 18px rgba(80,20,28,.14)}
+.opt{border-radius:12px;border:2px solid var(--input);background:var(--surface)}
+.opt.on{background:var(--maroon);border-color:var(--maroon);color:#fff}
+.opt.sel{background:var(--sel);border-color:var(--maroon)}
+.opt:disabled{background:var(--taken);color:var(--taken-fg);border-color:var(--border)}
+table{width:100%;border-collapse:collapse;min-width:560px;font-size:14px}
+th{text-align:left;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em;padding:10px 12px;border-bottom:2px solid var(--gold)}
+td{padding:14px 12px;border-bottom:1px solid var(--row)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+@media (prefers-reduced-motion:no-preference){.pulse{animation:p 2s infinite}@keyframes p{50%{opacity:.45}}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+var S={screen:'login',tab:'login',showPw:false,bk:{step:1,date:0,room:null,slot:null},wi:{step:1,occ:false,dur:null}};
+var app=document.getElementById('app');
+
+function ic(d){return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="'+d+'"/></svg>';}
+var I={
+ dash:'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z',
+ cal:'M3 4h18v17H3zM3 9h18M8 2v4M16 2v4M12 13v4M10 15h4',
+ qr:'M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16',
+ home:'M3 21V8l9-5 9 5v13M9 21v-6h6v6',
+ list:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+ doc:'M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5',
+ out:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
+ back:'M15 6l-6 6 6 6',next:'M9 6l6 6-6 6',chev:'M6 9l6 6 6-6',
+ bell:'M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0',
+ wifi:'M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01',
+ chk:'M5 12.5l4.5 4.5L19 7.5',
+ lock:'M4 11h16v10H4zM8 11V7a4 4 0 0 1 7.5-2',
+ clock:'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z',
+ lockc:'M7 11V7a5 5 0 0 1 10 0v4M5 11h14v10H5z',
+ eye:'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
+ eyeoff:'M17.9 17.9A10.9 10.9 0 0 1 12 19c-6.5 0-10-7-10-7a18 18 0 0 1 5.1-5.9M9.9 5.2A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-2.2 3.2M14.1 14.1a3 3 0 0 1-4.2-4.2M2 2l20 20',
+ qrbox:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM20 14v1M14 20h1M18 18v3h3'
+};
+var LOGO='<svg width="__S__" height="__S__" viewBox="0 0 100 100" role="img" aria-label="PUP star logo"><circle cx="50" cy="50" r="48" fill="#E8B93A"/><circle cx="50" cy="50" r="42" fill="#6E0F1B"/><polygon points="50,14 59,39 86,39 64,55 72,81 50,65 28,81 36,55 14,39 41,39" fill="#E8B93A"/></svg>';
+function logo(s){return LOGO.replace(/__S__/g,s);}
+
+var ROOMS=[['101','Lecture Room','40 seats','G','Available','Vacant now'],['102','Computer Lab','30 seats','R','Occupied','In use until 11:00 AM'],['103','Conference Room','12 seats','Y','Reserved','Starts at 1:00 PM'],['104','Study Room','8 seats','G','Available','Vacant now'],['105','Science Lab','24 seats','R','Occupied','In use until 12:30 PM']];
+var RES=[['8:00 – 9:30 AM','Room 104','Thesis consultation','Completed','N'],['10:00 – 11:30 AM','Room 102','Group study session','Ongoing','R'],['1:00 – 2:30 PM','Room 103','Org planning meeting','Confirmed','Y'],['4:00 – 5:00 PM','Room 101','Capstone presentation rehearsal','Confirmed','Y']];
+var LOGS=[['10:02 AM','Room 102','Door unlocked via QR pass'],['9:58 AM','Room 102','QR pass scanned at door'],['8:05 AM','Room 104','Door unlocked via QR pass']];
+
+/* ---------- LOGIN ---------- */
+function loginScreen(){
+ var login=S.tab==='login';
+ var tabs='<div role="group" aria-label="Choose Log In or Sign Up" class="row" style="gap:6px;padding:5px;border-radius:12px;background:var(--chip)">'+
+  '<button type="button" data-act="tab" data-v="login" aria-pressed="'+login+'" class="'+(login?'btn':'')+'" style="flex:1;height:44px;border:none;border-radius:9px;font-size:15px;font-weight:700;padding:0;background:'+(login?'':'transparent')+'">Log In</button>'+
+  '<button type="button" data-act="tab" data-v="signup" aria-pressed="'+(!login)+'" class="'+(!login?'btn':'')+'" style="flex:1;height:44px;border:none;border-radius:9px;font-size:15px;font-weight:700;padding:0;background:'+(!login?'':'transparent')+'">Sign Up</button></div>';
+ var form;
+ if(login){
+  form='<div><h2 style="font-size:28px;font-weight:800;color:var(--title);margin-bottom:6px">Welcome Back!</h2><p style="color:var(--muted)">Sign in to reserve rooms and manage your access.</p></div>'+
+  '<div class="col" style="gap:18px">'+
+  '<div class="field"><label for="uid">Username / Student / Employee ID</label><input id="uid" type="text" placeholder="e.g. 2022-00123-MN-0" autocomplete="username"></div>'+
+  '<div class="field"><label for="pw">Password</label><div style="position:relative"><input id="pw" type="'+(S.showPw?'text':'password')+'" placeholder="Enter your password" autocomplete="current-password" style="padding-right:52px"><button type="button" data-act="pw" aria-label="'+(S.showPw?'Hide password':'Show password')+'" style="position:absolute;right:4px;top:2px;width:44px;height:44px;border:none;background:none;color:var(--muted);display:flex;align-items:center;justify-content:center">'+ic(S.showPw?I.eye:I.eyeoff)+'</button></div></div>'+
+  '<div class="row wrap" style="justify-content:space-between;gap:8px"><label class="row" style="gap:8px;font-weight:500"><input type="checkbox" style="width:18px;height:18px;accent-color:#7A1620">Keep me signed in</label><button type="button" class="link" data-act="forgot">Forgot password?</button></div>'+
+  '<p id="forgot" role="status" style="font-size:13px;color:var(--muted)" hidden>Demo only: a reset link would be sent to your PUP email.</p></div>'+
+  '<button type="button" class="btn" data-act="go" data-v="dashboard">Log In</button>'+
+  '<div class="row" style="gap:12px;color:var(--muted);font-size:13px"><span style="flex:1;height:1px;background:var(--border)"></span>or<span style="flex:1;height:1px;background:var(--border)"></span></div>'+
+  '<button type="button" class="btn gold" data-act="go" data-v="dashboard">'+ic(I.qrbox)+'Login with QR (Mobile App)</button>'+
+  '<p style="text-align:center;font-size:12px;color:var(--muted)">Authorized PUP students, faculty and staff only.</p>';
+ }else{
+  form='<div><h2 style="font-size:28px;font-weight:800;color:var(--title);margin-bottom:6px">Create your account</h2><p style="color:var(--muted)">Use your PUP ID to start reserving rooms.</p></div>'+
+  '<div class="field"><label for="sname">Full name</label><input id="sname" type="text" placeholder="e.g. Juan Dela Cruz" autocomplete="name"></div>'+
+  '<div class="field"><label for="sid">Student / Employee ID</label><input id="sid" type="text" placeholder="e.g. 2022-00123-MN-0"></div>'+
+  '<div class="field"><label for="semail">PUP email</label><input id="semail" type="email" placeholder="name@iskolarngbayan.pup.edu.ph" autocomplete="email"></div>'+
+  '<div class="field"><label for="srole">I am a</label><select id="srole"><option>Student</option><option>Faculty</option><option>Staff</option></select></div>'+
+  '<div class="field"><label for="spw">Password</label><input id="spw" type="password" placeholder="Create a password" autocomplete="new-password"></div>'+
+  '<button type="button" class="btn" data-act="go" data-v="dashboard">Create Account</button>'+
+  '<p style="text-align:center;font-size:14px">Already have an account? <button type="button" class="link" data-act="tab" data-v="login" style="text-decoration:underline">Log in</button></p>';
+ }
+ var campus='<svg viewBox="0 0 640 230" style="width:100%;max-width:640px;height:auto" role="img" aria-label="Illustration of the PUP campus buildings"><circle cx="540" cy="52" r="30" fill="#E8B93A" opacity=".9"/><rect y="200" width="640" height="30" fill="#4F0C14"/><rect x="60" y="90" width="150" height="110" fill="#8E2432"/><rect x="60" y="80" width="150" height="14" fill="#E8B93A"/><g fill="#F3D98B"><rect x="76" y="108" width="18" height="24"/><rect x="106" y="108" width="18" height="24"/><rect x="136" y="108" width="18" height="24"/><rect x="166" y="108" width="18" height="24"/><rect x="76" y="148" width="18" height="24"/><rect x="106" y="148" width="18" height="24"/><rect x="136" y="148" width="18" height="24"/><rect x="166" y="148" width="18" height="24"/></g><rect x="240" y="40" width="160" height="160" fill="#A12C3C"/><polygon points="230,40 320,6 410,40" fill="#E8B93A"/><g fill="#fff" opacity=".9"><rect x="262" y="62" width="14" height="136"/><rect x="298" y="62" width="14" height="136"/><rect x="334" y="62" width="14" height="136"/><rect x="370" y="62" width="14" height="136"/></g><rect x="296" y="150" width="48" height="50" fill="#4F0C14"/><rect x="430" y="100" width="130" height="100" fill="#8E2432"/><rect x="430" y="92" width="130" height="12" fill="#E8B93A"/><g fill="#F3D98B"><rect x="446" y="118" width="18" height="22"/><rect x="476" y="118" width="18" height="22"/><rect x="506" y="118" width="18" height="22"/><rect x="446" y="156" width="18" height="22"/><rect x="476" y="156" width="18" height="22"/><rect x="506" y="156" width="18" height="22"/></g><g fill="#4F0C14"><rect x="26" y="150" width="8" height="50"/><rect x="590" y="140" width="8" height="60"/></g><g fill="#2F7D4A"><circle cx="30" cy="140" r="26"/><circle cx="594" cy="128" r="30"/></g></svg>';
+ return '<div class="row wrap" style="align-items:stretch;min-height:100vh">'+
+ '<section style="flex:1 1 520px;min-width:0;background:var(--maroon-d);color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:48px clamp(24px,5vw,64px);gap:32px">'+
+  '<div class="row" style="gap:16px">'+logo(64)+'<div><div style="font-weight:800;font-size:20px;letter-spacing:.04em">PUP</div><div style="font-size:13px;color:#F3D98B;font-weight:500">Polytechnic University of the Philippines</div></div></div>'+
+  '<div class="col" style="gap:20px;max-width:560px"><h1 style="font-size:clamp(30px,4vw,44px);line-height:1.1;font-weight:800">PUP Smart Room Reservation &amp; IoT Access System</h1><p style="font-size:20px;color:#F3D98B;font-weight:600">Secure Rooms, Smart Access, A Smarter PUP</p>'+
+  '<div class="row wrap" style="gap:20px;font-size:14px;color:#F4E9EA"><span class="row" style="gap:8px"><span class="dot" style="width:10px;height:10px;background:#4CD27A"></span>Vacant</span><span class="row" style="gap:8px"><span class="dot" style="width:10px;height:10px;background:#FF6B6B"></span>Occupied</span><span class="row" style="gap:8px"><span class="dot" style="width:10px;height:10px;background:#FFD23F"></span>Reserved</span></div></div>'+
+  campus+'</section>'+
+ '<section style="flex:1 1 480px;min-width:0;display:flex;align-items:center;justify-content:center;padding:40px 20px"><div class="card col" style="width:100%;max-width:420px;border-radius:16px;padding:32px 28px;gap:22px;box-shadow:0 8px 28px rgba(60,20,25,.1)">'+tabs+form+'</div></section></div>';
+}
+
+/* ---------- DASHBOARD ---------- */
+function sidebar(active){
+ function n(act,v,icon,label,on){return '<button type="button" class="navb'+(on?' on':'')+'" data-act="'+act+'" data-v="'+v+'"'+(on?' aria-current="page"':'')+'>'+ic(icon)+label+'</button>';}
+ return '<aside style="flex:0 0 248px;width:248px;max-width:100%;background:#241A1C;color:#E9E1E2;display:flex;flex-direction:column;justify-content:space-between;padding:24px 16px;gap:24px">'+
+ '<div class="col" style="gap:28px"><div class="row" style="gap:12px;padding:0 8px">'+logo(40)+'<div><div style="font-weight:800;font-size:16px;color:#fff">PUP SmartRoom</div><div style="font-size:12px;color:#E8B93A">Reservation &amp; IoT Access</div></div></div>'+
+ '<nav aria-label="Main" class="col" style="gap:4px">'+n('go','dashboard',I.dash,'Dashboard',true)+n('go','booking',I.cal,'Reserve Room')+n('go','walkin',I.qr,'Scan QR Code')+n('scroll','status',I.home,'Room Status')+n('scroll','mine',I.list,'My Reservations')+n('scroll','logs',I.doc,'Access Logs')+'</nav></div>'+
+ '<div style="border-top:1px solid #4A3A3D;padding-top:16px">'+n('go','login',I.out,'Log Out')+'</div></aside>';
+}
+function dashboard(){
+ var metrics=[['2','My Reservations','Active today',I.cal,'#F3E5E7','#7A1620'],['8','Available Rooms','Vacant now',I.chk,'G'],['5','Occupied Rooms','In use / locked',I.lockc,'R'],['3','Reserved Rooms','Upcoming slot',I.clock,'Y']];
+ var mh=metrics.map(function(m){
+  var cls=m.length===5?m[4]:'',st=m.length>5?'background:'+m[4]+';color:'+m[5]:'';
+  return '<div class="card row" style="padding:20px;gap:16px"><div class="row '+cls+'" style="width:52px;height:52px;border-radius:12px;justify-content:center;flex:none;'+st+'">'+ic(m[3]).replace('class="ic"','class="ic" style="width:26px;height:26px"')+'</div><div><div style="font-size:34px;font-weight:800;line-height:1">'+m[0]+'</div><div style="font-size:14px;font-weight:700;margin-top:6px">'+m[1]+'</div><div style="font-size:12px;color:var(--muted);margin-top:2px">'+m[2]+'</div></div></div>';}).join('');
+ var rooms=ROOMS.map(function(r){return '<li class="row wrap" style="justify-content:space-between;gap:12px;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:var(--soft)"><div class="row" style="gap:14px"><span class="dot bg'+r[3]+'" style="width:14px;height:14px;flex:none" aria-hidden="true"></span><div><div style="font-size:16px;font-weight:800">Room '+r[0]+'</div><div style="font-size:13px;color:var(--muted)">'+r[1]+' · '+r[2]+'</div></div></div><div class="col" style="align-items:flex-end;gap:4px"><span class="badge '+r[3]+'">'+r[4]+'</span><span style="font-size:12px;color:var(--muted)">'+r[5]+'</span></div></li>';}).join('');
+ function qa(act,v,icon,t,s,bg,fg){return '<button type="button" class="qa" data-act="'+act+'" data-v="'+v+'"><span class="row" style="width:48px;height:48px;border-radius:12px;justify-content:center;background:'+bg+';color:'+fg+'">'+ic(icon).replace('class="ic"','class="ic" style="width:24px;height:24px"')+'</span><span><span style="display:block;font-size:16px;font-weight:800">'+t+'</span><span style="display:block;font-size:13px;color:var(--muted);margin-top:2px">'+s+'</span></span></button>';}
+ var res=RES.map(function(x){return '<tr><td style="font-weight:700;white-space:nowrap">'+x[0]+'</td><td>'+x[1]+'</td><td>'+x[2]+'</td><td><span class="badge '+x[4]+'"><span class="dot bg'+x[4]+'" style="width:8px;height:8px"></span>'+x[3]+'</span></td></tr>';}).join('');
+ var logs=LOGS.map(function(x){return '<tr><td style="font-weight:700;white-space:nowrap">'+x[0]+'</td><td>'+x[1]+'</td><td>'+x[2]+'</td></tr>';}).join('');
+ return '<div class="row wrap" style="align-items:stretch;min-height:100vh">'+sidebar()+
+ '<main style="flex:999 1 560px;min-width:0" class="col">'+
+ '<header class="row wrap" style="justify-content:space-between;gap:16px;padding:16px 28px;background:var(--surface);border-bottom:1px solid var(--border)"><div><h1 style="font-size:22px;font-weight:800;color:var(--title)">Dashboard</h1><p style="font-size:13px;color:var(--muted);margin-top:2px">Tuesday, October 13, 2026</p></div>'+
+ '<div class="row wrap" style="gap:14px"><div class="row G" role="status" style="gap:8px;height:40px;padding:0 14px;border-radius:20px;font-size:13px;font-weight:700">'+ic(I.wifi).replace('class="ic"','class="ic" style="width:16px;height:16px"')+'IoT Hub Connected</div>'+
+ '<button type="button" aria-label="Notifications" class="row" style="width:44px;height:44px;border-radius:50%;border:1px solid var(--border);background:var(--surface);justify-content:center">'+ic(I.bell)+'</button>'+
+ '<button type="button" aria-haspopup="menu" class="row" style="gap:12px;height:52px;padding:0 12px 0 6px;border-radius:26px;border:1px solid var(--border);background:var(--surface);text-align:left"><span class="row" style="width:40px;height:40px;border-radius:50%;background:var(--maroon);color:#fff;justify-content:center;font-weight:800;font-size:14px">JD</span><span class="col"><span style="font-size:14px;font-weight:700">Juan Dela Cruz</span><span style="font-size:12px;color:var(--muted)">Role: Student</span></span>'+ic(I.chev).replace('class="ic"','class="ic" style="width:16px;height:16px"')+'</button></div></header>'+
+ '<div class="col" style="padding:28px clamp(16px,3vw,32px) 40px;gap:28px">'+
+ '<section aria-label="Overview" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">'+mh+'</section>'+
+ '<div class="row wrap" style="gap:24px;align-items:flex-start">'+
+ '<section id="status" class="card col" style="flex:1 1 420px;min-width:0;padding:24px;gap:16px"><div class="row wrap" style="justify-content:space-between;gap:12px"><h2 style="font-size:18px;font-weight:800;color:var(--title)">Room Availability</h2><span class="row G" style="gap:8px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:12px"><span class="dot bgG pulse" style="width:8px;height:8px"></span>Live</span></div><ul class="col" style="gap:10px">'+rooms+'</ul>'+
+ '<div class="row wrap" style="gap:18px;font-size:12px;border-top:1px solid var(--border);padding-top:12px"><span class="row" style="gap:6px"><span class="dot bgG" style="width:10px;height:10px"></span>Available / Vacant</span><span class="row" style="gap:6px"><span class="dot bgR" style="width:10px;height:10px"></span>Occupied / Locked</span><span class="row" style="gap:6px"><span class="dot bgY" style="width:10px;height:10px"></span>Reserved (upcoming)</span></div></section>'+
+ '<section aria-labelledby="qa-h" class="col" style="flex:1 1 380px;min-width:0;gap:16px"><h2 id="qa-h" style="font-size:18px;font-weight:800;color:var(--title)">Quick Actions</h2><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">'+
+ qa('go','booking',I.cal,'Reserve Room','Select date, time and room','#7A1620','#fff')+qa('go','walkin',I.qr,'Scan QR Code','Walk-in quick check-in','#E8B93A','#3A0A10')+qa('scroll','status',I.home,'View Room Status','Live lights per room','#241A1C','#fff')+qa('scroll','logs',I.doc,'View Access Logs','Door unlocks and entries','#F3E5E7','#7A1620')+'</div></section></div>'+
+ '<section id="mine" class="card col" style="padding:24px;gap:16px"><div class="row wrap" style="justify-content:space-between;gap:12px"><h2 style="font-size:18px;font-weight:800;color:var(--title)">Today\'s Reservations</h2><button type="button" class="link" data-act="go" data-v="booking">+ New reservation</button></div><div style="overflow-x:auto"><table><thead><tr><th scope="col">Time</th><th scope="col">Room</th><th scope="col">Purpose</th><th scope="col">Status</th></tr></thead><tbody>'+res+'</tbody></table></div>'+
+ '<div class="row wrap" style="justify-content:space-between;gap:12px;font-size:13px;color:var(--muted)"><span>Showing 4 of 4 today</span><div class="row" style="gap:6px"><button type="button" aria-label="Previous page" class="row" style="width:44px;height:44px;border-radius:10px;border:1px solid var(--border);background:var(--surface);justify-content:center">'+ic(I.back)+'</button><button type="button" aria-current="page" style="width:44px;height:44px;border-radius:10px;border:none;background:var(--maroon);color:#fff;font-weight:700">1</button><button type="button" aria-label="Next page" class="row" style="width:44px;height:44px;border-radius:10px;border:1px solid var(--border);background:var(--surface);justify-content:center">'+ic(I.next)+'</button></div></div></section>'+
+ '<section id="logs" class="card col" style="padding:24px;gap:16px"><h2 style="font-size:18px;font-weight:800;color:var(--title)">Recent Access Logs</h2><div style="overflow-x:auto"><table style="min-width:420px"><thead><tr><th scope="col">Time</th><th scope="col">Room</th><th scope="col">Event</th></tr></thead><tbody>'+logs+'</tbody></table></div></section>'+
+ '</div></main></div>';
+}
+
+/* ---------- BOOKING ---------- */
+function fmt(h){return (h>12?h-12:h)+':00 '+(h>=12?'PM':'AM');}
+function qrCells(){
+ var seed=7,out='';function rnd(){seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;}
+ function f(x,y,cx,cy){var dx=x-cx,dy=y-cy;if(dx<0||dy<0||dx>6||dy>6)return null;return dx===0||dy===0||dx===6||dy===6||(dx>=2&&dx<=4&&dy>=2&&dy<=4);}
+ for(var y=0;y<21;y++)for(var x=0;x<21;x++){
+  var a=f(x,y,0,0),b=f(x,y,14,0),c=f(x,y,0,14),fp=a!==null?a:(b!==null?b:c),on;
+  if(fp!==null)on=fp;else if((x<8&&y<8)||(x>12&&y<8)||(x<8&&y>12))on=false;else on=rnd()>0.5;
+  out+='<span style="background:'+(on?'#1F1A1A':'#FFFFFF')+'"></span>';}
+ return out;
+}
+function booking(){
+ var b=S.bk,names=['Select','Conflict check','QR pass'];
+ var stepper='<ol class="row wrap" style="gap:16px 32px">'+names.map(function(l,i){var n=i+1,done=b.step>n,cur=b.step===n;
+  return '<li class="row" style="gap:10px"><span class="row" style="width:34px;height:34px;border-radius:50%;justify-content:center;font-weight:800;font-size:14px;border:2px solid '+(cur?'var(--maroon)':done?'var(--g)':'var(--input)')+';background:'+(cur?'var(--maroon)':done?'var(--g)':'var(--surface)')+';color:'+((cur||done)?'#fff':'var(--muted)')+'">'+(done?'✓':n)+'</span><span style="font-size:14px;font-weight:700;color:'+(cur?'var(--title)':'var(--muted)')+'">'+l+'</span></li>';}).join('')+'</ol>';
+ var days=[['Tue','13','Today'],['Wed','14','Oct'],['Thu','15','Oct'],['Fri','16','Oct'],['Sat','17','Oct']];
+ var taken={'101':[9,13],'102':[8,10,11],'103':[10,13,14],'104':[12],'105':[9,15]};
+ var tk=b.room?(taken[b.room]||[]):[];
+ var ready=!!(b.room&&b.slot);
+ var body='';
+ if(b.step===1){
+  body='<div><h1 style="font-size:24px;font-weight:800;color:var(--title);margin-bottom:4px">Choose room, date &amp; time</h1><p style="font-size:14px;color:var(--muted)">We check for conflicts automatically. No approval wait for eligible bookings.</p></div>'+
+  '<fieldset style="border:none;margin:0;padding:0"><legend style="font-size:14px;font-weight:800;padding:0;margin-bottom:10px">1. Date</legend><div class="row wrap" style="gap:10px">'+days.map(function(d,i){var on=b.date===i;return '<button type="button" data-act="bkDate" data-v="'+i+'" aria-pressed="'+on+'" class="opt'+(on?' on':'')+'" style="width:84px;height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><span style="font-size:12px;font-weight:600">'+d[0]+'</span><span style="font-size:22px;font-weight:800;line-height:1">'+d[1]+'</span><span style="font-size:11px">'+d[2]+'</span></button>';}).join('')+'</div></fieldset>'+
+  '<fieldset style="border:none;margin:0;padding:0"><legend style="font-size:14px;font-weight:800;padding:0;margin-bottom:10px">2. Room</legend><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px">'+ROOMS.map(function(r){var on=b.room===r[0];return '<button type="button" data-act="bkRoom" data-v="'+r[0]+'" aria-pressed="'+on+'" class="opt'+(on?' sel':'')+'" style="text-align:left;padding:14px"><span style="display:block;font-size:15px;font-weight:800">Room '+r[0]+'</span><span style="font-size:12px;color:var(--muted)">'+r[1]+' · '+r[2]+'</span></button>';}).join('')+'</div></fieldset>'+
+  '<fieldset style="border:none;margin:0;padding:0"><legend style="font-size:14px;font-weight:800;padding:0;margin-bottom:10px">3. Start time (1 hour)</legend><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px">'+[8,9,10,11,12,13,14,15,16].map(function(h){var t=tk.indexOf(h)>-1,on=b.slot===h;return '<button type="button" '+((t||!b.room)?'disabled ':'')+'data-act="bkSlot" data-v="'+h+'" aria-pressed="'+on+'" class="opt'+(on?' on':'')+'" style="height:54px;font-size:14px;font-weight:700;border-radius:10px;'+(t?'text-decoration:line-through':'')+'">'+fmt(h)+'<span style="display:block;font-size:10px;font-weight:600;text-decoration:none">'+(t?'Reserved':b.room?'Open':'Pick a room')+'</span></button>';}).join('')+'</div><p style="margin-top:10px;font-size:12px;color:var(--muted)">Struck-through slots are already reserved for this room.</p></fieldset>'+
+  '<div class="field"><label for="purpose">4. Purpose</label><input id="purpose" type="text" placeholder="e.g. Group study, thesis consultation"></div>';
+ }else if(b.step===2){
+  var rt='Room '+b.room,tt=fmt(b.slot)+' – '+fmt(b.slot+1);
+  var checks=[['No overlapping reservation',rt+' is free for '+tt],['Within operating hours','Rooms are bookable 7:00 AM – 9:00 PM'],['Room is in service','No maintenance block or lockout on the smart lock'],['Within your booking limit','Students may hold up to 2 active reservations']];
+  body='<div><h1 style="font-size:24px;font-weight:800;color:var(--title);margin-bottom:4px">Conflict check</h1><p style="font-size:14px;color:var(--muted)">The system verified your request against the live schedule and booking rules.</p></div><ul class="col" style="gap:10px">'+checks.map(function(c){return '<li class="row G" style="gap:14px;padding:14px 16px;border-radius:12px"><span class="row bgG" style="width:28px;height:28px;border-radius:50%;justify-content:center;color:#fff;flex:none">'+ic(I.chk).replace('class="ic"','class="ic" style="width:16px;height:16px;stroke-width:3"')+'</span><span><span style="display:block;font-size:14px;font-weight:700">'+c[0]+'</span><span style="display:block;font-size:13px;opacity:.9">'+c[1]+'</span></span></li>';}).join('')+'</ul><div class="Y" style="padding:14px 16px;border-radius:12px;font-size:14px"><strong>Eligible for auto-approval.</strong> Confirming will issue your dynamic QR pass instantly.</div>';
+ }else{
+  body='<div class="col" style="gap:22px;align-items:center;text-align:center"><div class="row G" role="status" style="gap:10px;padding:8px 16px;border-radius:20px;font-weight:800;font-size:14px">'+ic(I.chk).replace('class="ic"','class="ic" style="width:18px;height:18px;stroke-width:3"')+'Booking auto-approved</div><h1 style="font-size:24px;font-weight:800;color:var(--title)">Your access pass is ready</h1><div class="col" style="align-items:center;gap:14px;background:#fff;color:#1F1A1A;border:2px solid var(--gold);border-radius:16px;padding:20px"><div role="img" aria-label="Dynamic QR access pass" style="display:grid;grid-template-columns:repeat(21,8px);grid-auto-rows:8px;width:168px;height:168px">'+qrCells()+'</div><div style="font-size:13px;color:#5A5050">Scan at the door-mounted reader to unlock</div></div><p style="max-width:420px;font-size:14px;color:var(--muted)">Valid from 15 minutes before your slot until it ends. The QR refreshes automatically and works only for this room and time.</p></div>';
+ }
+ var actions;
+ if(b.step===1)actions='<button type="button" class="btn" data-act="bkStep" data-v="2"'+(ready?'':' disabled')+'>Check availability</button>';
+ else if(b.step===2)actions='<button type="button" class="btn ghost" data-act="bkStep" data-v="1">Edit details</button><button type="button" class="btn" data-act="bkStep" data-v="3">Confirm &amp; generate QR pass</button>';
+ else actions='<button type="button" class="btn gold">Save QR to phone</button><button type="button" class="btn" data-act="go" data-v="dashboard">Back to Dashboard</button>';
+ var dayLong=['Tue, Oct 13','Wed, Oct 14','Thu, Oct 15','Fri, Oct 16','Sat, Oct 17'][b.date];
+ function dl(t,v){return '<div><dt style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">'+t+'</dt><dd style="margin-top:2px;font-size:16px;font-weight:700">'+v+'</dd></div>';}
+ return '<div class="col" style="min-height:100vh"><header class="row wrap" style="background:#241A1C;color:#fff;justify-content:space-between;gap:12px;padding:14px clamp(16px,3vw,32px)"><div class="row" style="gap:12px">'+logo(36)+'<div style="font-weight:800;font-size:16px">Reserve a Room</div></div><button type="button" data-act="go" data-v="dashboard" class="row" style="gap:8px;height:44px;padding:0 16px;border-radius:10px;border:1px solid #6B5A5D;background:none;color:#fff;font-weight:600;font-size:14px">'+ic(I.back).replace('class="ic"','class="ic" style="width:16px;height:16px"')+'Back to Dashboard</button></header>'+
+ '<main class="col" style="width:100%;max-width:1100px;margin:0 auto;padding:28px clamp(16px,3vw,32px) 48px;gap:24px">'+stepper+'<div class="row wrap" style="gap:24px;align-items:flex-start">'+
+ '<section class="card col" style="flex:1 1 560px;min-width:0;padding:28px;gap:24px;border-radius:16px">'+body+'<div class="row wrap" style="gap:12px;justify-content:flex-end;border-top:1px solid var(--row);padding-top:20px">'+actions+'</div></section>'+
+ '<aside aria-label="Booking summary" class="card col" style="flex:1 1 280px;min-width:0;padding:24px;gap:16px;border-radius:16px"><h2 style="font-size:16px;font-weight:800;color:var(--title)">Booking summary</h2><dl class="col" style="gap:14px">'+dl('Room',b.room?'Room '+b.room:'Not selected')+dl('Date',dayLong)+dl('Time',b.slot?fmt(b.slot)+' – '+fmt(b.slot+1):'Not selected')+dl('Booked by','Juan Dela Cruz')+'</dl><div class="row Y" style="gap:10px;padding:12px;border-radius:10px;font-size:13px;font-weight:700"><span class="dot bgY" style="width:12px;height:12px;flex:none"></span>Door light turns yellow before your slot, red while in use.</div></aside></div></main></div>';
+}
+
+/* ---------- WALK-IN ---------- */
+function walkin(){
+ var w=S.wi,led;
+ if(w.step===3)led=['R','Occupied · In Use','Door is unlocked for you'];
+ else if(w.occ)led=['R','Occupied · Locked','In use until 12:30 PM'];
+ else led=['G','Vacant','Ready for a walk-in session'];
+ var c=led[0];
+ function ck(color,t){return '<li class="row" style="gap:10px"><span class="row bg'+color+'" style="width:22px;height:22px;border-radius:50%;justify-content:center;color:#fff;flex:none">'+ic(I.chk).replace('class="ic"','class="ic" style="width:12px;height:12px;stroke-width:3.5"')+'</span>'+t+'</li>';}
+ var body='';
+ if(w.step===1){
+  if(!w.occ)body='<ul class="col" style="gap:10px;font-size:14px">'+ck('G','Room is vacant right now')+ck('G','Smart lock online and ready')+'<li class="row" style="gap:10px"><span class="row bgY" style="width:22px;height:22px;border-radius:50%;justify-content:center;color:#3A2A00;font-weight:800;font-size:13px;flex:none">!</span>Next booking starts at 1:00 PM</li></ul><button type="button" class="btn" style="height:56px;border-radius:12px" data-act="wiStep" data-v="2">Choose duration</button><button type="button" class="link" style="height:44px;color:var(--muted);font-weight:600;font-size:13px;text-decoration:underline" data-act="wiOcc" data-v="1">Preview: what an occupied room shows</button>';
+  else body='<p style="font-size:14px;color:var(--muted)">This room is in use until 12:30 PM and the door is locked. You can reserve a later slot or look for another vacant room.</p><button type="button" class="btn" style="height:56px;border-radius:12px" data-act="go" data-v="booking">Reserve a later slot</button><button type="button" class="link" style="height:44px;color:var(--muted);font-weight:600;font-size:13px;text-decoration:underline" data-act="wiOcc" data-v="0">Back to vacant preview</button>';
+ }else if(w.step===2){
+  var opts=[[30,'30 min','Until 12:00 PM',0],[60,'1 hour','Until 12:30 PM',0],[90,'1.5 hours','Until 1:00 PM',0],[120,'2 hours','Overlaps 1:00 PM booking',1]];
+  body='<h2 style="font-size:18px;font-weight:800;color:var(--title)">How long do you need it?</h2><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">'+opts.map(function(o){var on=w.dur===o[0];return '<button type="button" '+(o[3]?'disabled ':'')+'data-act="wiDur" data-v="'+o[0]+'" aria-pressed="'+on+'" class="opt'+(on?' on':'')+'" style="min-height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px"><span style="font-size:20px;font-weight:800">'+o[1]+'</span><span style="font-size:12px">'+o[2]+'</span></button>';}).join('')+'</div><button type="button" class="btn" style="height:56px;border-radius:12px" data-act="wiStep" data-v="3"'+(w.dur?'':' disabled')+'>Confirm &amp; unlock door</button><button type="button" class="link" style="height:44px;color:var(--muted);font-weight:600" data-act="wiStep" data-v="1">Back</button>';
+ }else{
+  var end=w.dur===30?'12:00 PM':(w.dur===60?'12:30 PM':'1:00 PM');
+  body='<div class="card col" style="padding:20px;align-items:center;gap:8px;text-align:center;border-radius:16px"><span class="row G" style="width:64px;height:64px;border-radius:50%;justify-content:center">'+ic(I.lock).replace('class="ic"','class="ic" style="width:32px;height:32px"')+'</span><div style="font-size:20px;font-weight:800">Door unlocked</div><div style="font-size:14px;color:var(--muted)">Push the door to enter. Your session ends at <strong style="color:var(--text)">'+end+'</strong>.</div></div><ol class="col" style="gap:10px;font-size:14px">'+ck('G','Conflict check passed')+ck('G','Auto-approved')+ck('G','Unlock signal sent to smart lock')+ck('R','Door LED switched to In Use')+'</ol><button type="button" class="btn" style="height:56px;border-radius:12px" data-act="go" data-v="dashboard">Done</button><button type="button" class="link" style="height:44px" data-act="wiReset">End session early</button>';
+ }
+ return '<div style="min-height:100vh;display:flex;justify-content:center"><div class="col" style="width:100%;max-width:440px;min-height:100vh;background:var(--bg)">'+
+ '<header style="background:var(--maroon-d);color:#fff;padding:20px 20px 24px" class="col"><div class="row" style="justify-content:space-between;margin-bottom:14px"><button type="button" data-act="go" data-v="dashboard" aria-label="Back to dashboard" class="row" style="width:44px;height:44px;border-radius:50%;border:1px solid #A8636B;background:none;color:#fff;justify-content:center">'+ic(I.back)+'</button><span style="font-size:12px;font-weight:700;color:#F3D98B;letter-spacing:.06em;text-transform:uppercase">Walk-in check-in</span>'+logo(34)+'</div><div style="font-size:12px;color:#F3D98B;font-weight:600">Door QR scanned</div><h1 style="font-size:28px;font-weight:800;margin-top:2px">Room 104</h1><div style="font-size:14px;color:#F4E9EA">Study Room · 8 seats</div></header>'+
+ '<main class="col" style="flex:1;padding:20px;gap:18px"><section role="status" aria-label="Room status" class="row '+c+'" style="gap:16px;padding:18px;border-radius:16px;border:2px solid var(--'+c.toLowerCase()+'-bd,var(--y))"><div class="row" style="width:64px;height:64px;border-radius:50%;justify-content:center;flex:none;background:var(--'+c.toLowerCase()+'-halo)"><span class="dot bg'+c+'" style="width:36px;height:36px"></span></div><div><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Door light</div><div style="font-size:20px;font-weight:800">'+led[1]+'</div><div style="font-size:13px">'+led[2]+'</div></div></section>'+body+'</main></div></div>';
+}
+
+/* ---------- RENDER ---------- */
+function render(){
+ var keep={};Array.prototype.forEach.call(app.querySelectorAll('input[type=text],input[type=email],input[type=password]'),function(e){if(e.id)keep[e.id]=e.value;});
+ var sel=document.getElementById('srole');var role=sel?sel.value:null;
+ var fn={login:loginScreen,dashboard:dashboard,booking:booking,walkin:walkin}[S.screen];
+ app.innerHTML=fn();
+ Object.keys(keep).forEach(function(id){var e=document.getElementById(id);if(e)e.value=keep[id];});
+ if(role&&document.getElementById('srole'))document.getElementById('srole').value=role;
+ document.title='PUP Smart Room Reservation – '+({login:'Login',dashboard:'Dashboard',booking:'Reserve a Room',walkin:'Walk-in Check-in'})[S.screen];
+}
+document.addEventListener('click',function(ev){
+ var t=ev.target.closest('[data-act]');if(!t)return;
+ var a=t.getAttribute('data-act'),v=t.getAttribute('data-v');
+ if(a==='go'){S.screen=v;S.bk={step:1,date:0,room:null,slot:null};S.wi={step:1,occ:false,dur:null};if(v==='login')S.tab='login';render();window.scrollTo(0,0);return;}
+ if(a==='scroll'){var el=document.getElementById(v);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});return;}
+ if(a==='forgot'){var f=document.getElementById('forgot');if(f)f.hidden=!f.hidden;return;}
+ if(a==='tab')S.tab=v;
+ if(a==='pw')S.showPw=!S.showPw;
+ if(a==='bkDate'){S.bk.date=+v;S.bk.slot=null;}
+ if(a==='bkRoom'){S.bk.room=v;S.bk.slot=null;}
+ if(a==='bkSlot')S.bk.slot=+v;
+ if(a==='bkStep'){S.bk.step=+v;window.scrollTo(0,0);}
+ if(a==='wiStep')S.wi.step=+v;
+ if(a==='wiOcc')S.wi.occ=v==='1';
+ if(a==='wiDur')S.wi.dur=+v;
+ if(a==='wiReset')S.wi={step:1,occ:false,dur:null};
+ render();
+});
+render();
+})();
+</script>
+</body>
+</html>

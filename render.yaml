@@ -1,0 +1,38 @@
+# Render Blueprint for PUP SRR.  Deploy:  Render dashboard -> New -> Blueprint -> pick your Git repo.
+# NOTE: a persistent disk requires a PAID instance (Starter or higher). Free web services have an
+# ephemeral filesystem, so a SQLite database stored on them is wiped on every restart/redeploy.
+services:
+  - type: web
+    name: pup-srr
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: waitress-serve --host=0.0.0.0 --port=$PORT --threads=4 --trusted-proxy='*' --trusted-proxy-count=1 --trusted-proxy-headers='x-forwarded-for x-forwarded-proto x-forwarded-host' --clear-untrusted-proxy-headers wsgi:app
+    healthCheckPath: /healthz
+    disk:
+      name: pup-srr-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: APP_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PUP_SRR_DB
+        value: /var/data/pup_srr.sqlite3
+      - key: APP_TIMEZONE
+        value: Asia/Manila
+      - key: SEED_DEMO
+        value: "1"          # creates sample campuses/rooms once; set to 0 if you will enter real rooms yourself
+      - key: SEED_DEMO_USERS
+        value: "0"          # never create public demo accounts
+      - key: ALLOW_REGISTRATION
+        value: "1"
+      - key: ADMIN_USER_ID  # first administrator, created on first start if missing
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false

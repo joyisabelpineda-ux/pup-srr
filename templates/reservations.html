@@ -1,0 +1,20 @@
+{% extends 'base.html' %}{% from '_macros.html' import icon, res_badge, pager, empty with context %}
+{% block title %}My reservations{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>My reservations</h1><p>Your complete reservation history and current approval status.</p></div>
+  <a class="btn gold" href="{{ url_for('main.reserve') }}">{{ icon('plus') }}New request</a></div>
+<form class="card filters" method="get" action="{{ url_for('main.reservations') }}" aria-label="Reservation filters">
+  <div class="field"><label for="q">Search</label><input id="q" type="search" name="q" value="{{ q }}" placeholder="Room or purpose"></div>
+  <div class="field"><label for="status">Status</label><select id="status" name="status" data-autosubmit><option value="">All statuses</option>{% for s in res_statuses %}<option {{ 'selected' if status == s }}>{{ s }}</option>{% endfor %}</select></div>
+  <div class="actions"><button class="btn" type="submit">{{ icon('search') }}Filter</button><a class="btn ghost" href="{{ url_for('main.reservations') }}">Reset</a></div>
+</form>
+<section class="card flush mt-2">
+{% if rows %}<div class="table-wrap"><table><thead><tr><th>#</th><th>Room</th><th>Date &amp; time</th><th>Purpose</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+  {% for r in rows %}<tr><td>{{ r.id }}</td><td><a href="{{ url_for('main.reservation_detail', rid=r.id) }}">{{ r.room_number }} · {{ r.room_name }}</a><div class="muted small">{{ r.building }}</div></td>
+    <td class="nowrap">{{ r.start_at|dfmt }}<div class="muted small">{{ r.start_at|tfmt }} – {{ r.end_at|tfmt }}</div></td><td>{{ r.purpose|truncate(60) }}</td><td>{{ res_badge(r) }}</td>
+    <td class="nowrap"><a class="btn ghost sm" href="{{ url_for('main.reservation_detail', rid=r.id) }}">Details</a>
+      {% if can_cancel(r, current_user) %}<form method="post" action="{{ url_for('main.cancel', rid=r.id) }}" data-confirm="Cancel reservation #{{ r.id }} for room {{ r.room_number }}? This cannot be undone." data-confirm-title="Cancel reservation" data-confirm-label="Yes, cancel it">{{ csrf_field() }}<button class="btn danger sm" type="submit">Cancel</button></form>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>{% else %}{{ empty('No reservations found','Try a different filter, or request your first room.','clip') }}{% endif %}
+</section>
+{{ pager(pg, 'main.reservations') }}
+{% endblock %}

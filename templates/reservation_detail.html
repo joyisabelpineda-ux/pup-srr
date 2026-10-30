@@ -1,0 +1,33 @@
+{% extends 'base.html' %}{% from '_macros.html' import icon, res_badge, room_badge with context %}
+{% block title %}Reservation #{{ r.id }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Reservation #{{ r.id }}</h1><p>{{ r.room_number }} · {{ r.room_name }} — {{ r.building }}</p></div>
+  <div class="flex gap-2 wrap">{{ res_badge(r) }}<a class="btn ghost" href="{{ url_for('main.reservations') }}">Back</a></div></div>
+<div class="grid g2">
+  <section class="card"><h2 class="mb-2">Details</h2>
+    <dl class="dl"><dt>Status</dt><dd>{{ res_badge(r) }}</dd>
+      <dt>Room</dt><dd><a href="{{ url_for('main.room_detail', room_id=r.room_id) }}">{{ r.room_number }} · {{ r.room_name }}</a> {{ room_badge(r.room_status) }}</dd>
+      <dt>Location</dt><dd>{{ r.building }}, {{ r.campus_name }}</dd>
+      <dt>Date</dt><dd>{{ r.start_at|dfmt }}</dd><dt>Time</dt><dd>{{ r.start_at|tfmt }} – {{ r.end_at|tfmt }}</dd>
+      <dt>Purpose</dt><dd>{{ r.purpose }}</dd>
+      <dt>Requested by</dt><dd>{{ r.requester }} ({{ r.requester_id }}, {{ r.requester_role }})</dd>
+      <dt>Submitted</dt><dd>{{ r.created_at|dt }}</dd>
+      {% if r.reviewed_at %}<dt>Reviewed</dt><dd>{{ r.reviewed_at|dt }}{% if r.reviewer %} by {{ r.reviewer }}{% endif %}</dd>{% endif %}
+      {% if r.review_note %}<dt>Reviewer note</dt><dd>{{ r.review_note }}</dd>{% endif %}
+      {% if r.cancelled_at %}<dt>Cancelled</dt><dd>{{ r.cancelled_at|dt }}</dd>{% endif %}</dl>
+    {% if can_cancel(r, current_user) %}<form class="mt-2" method="post" action="{{ url_for('main.cancel', rid=r.id) }}" data-confirm="Cancel reservation #{{ r.id }}? This cannot be undone." data-confirm-title="Cancel reservation" data-confirm-label="Yes, cancel it">
+      {{ csrf_field() }}<input type="hidden" name="back" value="detail"><button class="btn danger" type="submit">Cancel reservation</button></form>{% endif %}</section>
+  <section class="grid align-start">
+    {% if r.status == 'Approved' and r.user_id == current_user.id %}
+    <div class="card"><h2 class="mb-2">Room access</h2><p class="muted">When your reservation is active, open the room’s access page (the same page the room’s QR code leads to) to validate your booking.</p>
+      <a class="btn gold mt-2" href="{{ url_for('main.scan_room', token=r.room_token) }}">{{ icon('qr') }}Open room access page</a>
+      <p class="notice mt-2">Simulated authorization only — no door is physically unlocked.</p></div>{% endif %}
+    {% if is_admin and r.status == 'Pending' %}
+    <div class="card"><h2 class="mb-2">Review this request</h2>
+      <form class="grid" method="post" action="{{ url_for('admin.review', rid=r.id) }}">{{ csrf_field() }}<input type="hidden" name="back" value="{{ url_for('main.reservation_detail', rid=r.id) }}">
+        <div class="field"><label for="note">Note to requester (optional)</label><textarea id="note" name="note" rows="3" maxlength="500"></textarea></div>
+        <div class="flex gap-2 wrap"><button class="btn ok" name="decision" value="Approved" type="submit" data-confirm="Approve reservation #{{ r.id }}? Availability is re-checked first." data-confirm-title="Approve reservation" data-confirm-label="Approve" data-confirm-style="no">{{ icon('check') }}Approve</button>
+          <button class="btn danger" name="decision" value="Rejected" type="submit" data-confirm="Reject reservation #{{ r.id }}?" data-confirm-title="Reject reservation" data-confirm-label="Reject">{{ icon('x') }}Reject</button></div></form></div>{% endif %}
+  </section>
+</div>
+{% endblock %}

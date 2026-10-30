@@ -1,0 +1,9 @@
+{% extends 'base.html' %}{% from '_macros.html' import icon %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>CSV reports</h1><p>Exports contain the current database records. Each export is written to the audit log.</p></div></div>
+<div class="grid g3">{% for key, label in reports.items() %}
+  <div class="card"><div class="stat"><div class="ico">{{ icon('file') }}</div><div><strong class="small-title">{{ label }}</strong><span class="l">pup_srr_{{ key }}.csv</span></div></div>
+    <a class="btn mt-2 block" href="{{ url_for('admin.report_csv', kind=key) }}">{{ icon('download') }}Download</a></div>{% endfor %}</div>
+<p class="muted small mt-2">Tip: filtered exports are available from the Reservations and Access logs pages. Cells beginning with = + - @ are prefixed with an apostrophe to prevent spreadsheet formula injection.</p>
+{% endblock %}

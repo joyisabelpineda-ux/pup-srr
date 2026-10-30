@@ -1,0 +1,23 @@
+{% extends 'base.html' %}{% from '_macros.html' import icon, res_badge, pager, empty with context %}
+{% block title %}Reservations{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Reservations</h1><p>Review, approve, reject or cancel requests.</p></div>
+  <a class="btn ghost" href="{{ url_for('admin.report_csv', kind='reservations', **request.args.to_dict()) }}">{{ icon('download') }}Export filtered CSV</a></div>
+<form class="card filters" method="get" action="{{ url_for('admin.reservations') }}" aria-label="Reservation filters">
+  <div class="field"><label for="q">Search</label><input id="q" type="search" name="q" value="{{ f.q }}" placeholder="Name, ID, room, purpose"></div>
+  <div class="field"><label for="status">Status</label><select id="status" name="status" data-autosubmit><option value="">All statuses</option>{% for s in res_statuses %}<option {{ 'selected' if f.status == s }}>{{ s }}</option>{% endfor %}</select></div>
+  <div class="field"><label for="campus">Campus</label><select id="campus" name="campus" data-autosubmit><option value="">All campuses</option>{% for c in campuses %}<option value="{{ c.id }}" {{ 'selected' if f.campus == c.id|string }}>{{ c.name }}</option>{% endfor %}</select></div>
+  <div class="field"><label for="date_from">From date</label><input id="date_from" type="date" name="date_from" value="{{ f.date_from }}"></div>
+  <div class="field"><label for="date_to">To date</label><input id="date_to" type="date" name="date_to" value="{{ f.date_to }}"></div>
+  <div class="actions"><button class="btn" type="submit">{{ icon('search') }}Filter</button><a class="btn ghost" href="{{ url_for('admin.reservations') }}">Reset</a></div></form>
+<section class="card flush mt-2">{% if rows %}<div class="table-wrap"><table><thead><tr><th>#</th><th>Requester</th><th>Room</th><th>Date &amp; time</th><th>Purpose</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.id }}</td><td>{{ r.full_name }}<div class="muted small">{{ r.uid }} · {{ r.role }}</div></td><td>{{ r.room_number }} · {{ r.room_name }}<div class="muted small">{{ r.building }}</div></td>
+  <td class="nowrap">{{ r.start_at|dfmt }}<div class="muted small">{{ r.start_at|tfmt }} – {{ r.end_at|tfmt }}</div></td><td>{{ r.purpose|truncate(50) }}</td><td>{{ res_badge(r) }}</td>
+  <td class="nowrap"><a class="btn ghost sm" href="{{ url_for('main.reservation_detail', rid=r.id) }}">Details</a>
+  {% if r.status == 'Pending' %}<form method="post" action="{{ url_for('admin.review', rid=r.id) }}">{{ csrf_field() }}<input type="hidden" name="back" value="{{ request.full_path.rstrip('?') }}">
+    <button class="btn ok sm" type="submit" name="decision" value="Approved" data-confirm="Approve reservation #{{ r.id }} for {{ r.full_name }}? Availability is re-checked first." data-confirm-title="Approve reservation" data-confirm-label="Approve" data-confirm-style="no">Approve</button>
+    <button class="btn danger sm" type="submit" name="decision" value="Rejected" data-confirm="Reject reservation #{{ r.id }}?" data-confirm-title="Reject reservation" data-confirm-label="Reject">Reject</button></form>{% endif %}
+  {% if can_cancel(r, current_user) %}<form method="post" action="{{ url_for('main.cancel', rid=r.id) }}" data-confirm="Cancel reservation #{{ r.id }}?" data-confirm-title="Cancel reservation" data-confirm-label="Yes, cancel it">{{ csrf_field() }}<input type="hidden" name="back" value="{{ request.full_path.rstrip('?') }}"><button class="btn ghost sm" type="submit">Cancel</button></form>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>{% else %}{{ empty('No reservations match','Adjust the filters above.','clip') }}{% endif %}</section>
+{{ pager(pg, 'admin.reservations') }}
+{% endblock %}

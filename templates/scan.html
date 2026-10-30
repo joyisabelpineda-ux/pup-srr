@@ -1,0 +1,20 @@
+{% extends 'base.html' %}{% from '_macros.html' import icon, room_badge %}
+{% block title %}Room access{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <h1>Room {{ room.room_number }} · {{ room.name }}</h1>
+  <p class="muted mt-1">{{ room.building }} · {{ room.campus_name }} · Capacity {{ room.capacity }}</p>
+  <p class="mt-1">{{ room_badge(room.status) }}</p>
+  {% if result %}
+  <div class="result {{ 'ok' if result.granted else 'no' }} mt-2" role="status">
+    {{ icon('check' if result.granted else 'x') }}
+    <h2>{{ 'Access authorized (simulated)' if result.granted else 'Access denied' }}</h2><p class="mt-1">{{ result.reason }}</p></div>
+  <p class="notice mt-2">This result is recorded in the access log. This system is not connected to door hardware, so nothing was physically unlocked and entry is not verified.</p>
+  {% else %}
+  <p class="mt-2">You are signed in as <strong>{{ current_user.full_name }}</strong>. Validate your reservation for this room:</p>
+  <form class="mt-2" method="post" action="{{ url_for('main.scan_authorize', token=request.view_args.token) }}">{{ csrf_field() }}<button class="btn gold" type="submit">{{ icon('shield') }}Validate my reservation</button></form>
+  <p class="notice mt-2">Access requires an <strong>approved reservation that is active right now</strong> for this room. Check in by scanning within 15 minutes after your reservation starts, or the slot will be released for walk-ins. Authorization is simulated; no door is unlocked.</p>
+  {% endif %}
+  <div class="flex gap-2 wrap mt-3"><a class="btn ghost" href="{{ url_for('main.reservations') }}">My reservations</a><a class="btn ghost" href="{{ url_for('auth.index') }}">Dashboard</a></div>
+</section>
+{% endblock %}

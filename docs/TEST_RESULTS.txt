@@ -1,0 +1,85 @@
+PUP SRR automated test results (actually executed)
+Date: 2026-10-21 19:21 UTC
+Command: python -m unittest discover -s tests -t . -v
+Environment: Python 3.12.3, Flask 3.1.3, qrcode 8.2, Pillow 12.1.1 (Linux sandbox)
+Note: ERROR log lines in the raw output come from tests that deliberately trigger a 500 to check the generic error page.
+
+test_admin_pages_render ... ok
+test_overview_statistics_are_live ... ok
+test_students_and_professors_blocked_from_every_admin_route ... ok
+test_formula_injection_neutralised ... ok
+test_reservations_csv_matches_database ... ok
+test_users_csv_has_no_password_data_and_rooms_csv_counts ... ok
+test_friendly_errors_without_internals ... ok
+test_unhandled_exception_returns_generic_500 ... 2026-10-21 19:21:28,955 ERROR srr: Exception on /boom [GET]
+test_audit_log_covers_login_logout_register_and_admin_actions ... ok
+test_legacy_database_upgrades_without_data_loss_and_is_backed_up ... ok
+test_production_style_start_has_no_demo_users_and_bootstraps_admin ... 2026-10-21 19:21:29,396 INFO srr: Administrator account boss created from environment settings.
+test_password_change_flow ... ok
+test_profile_shows_only_own_data ... ok
+test_profile_update_persists_across_restart ... ok
+test_profile_validation_and_duplicate_email ... ok
+test_access_logs_page_and_csv_match_database ... ok
+test_denied_without_reservation_then_granted_with_active_one ... ok
+test_end_to_end_register_reserve_approve_scan ... ok
+test_invalid_token_404_and_logged ... ok
+test_maintenance_room_denied_even_with_reservation ... ok
+test_other_users_reservation_does_not_grant_access ... ok
+test_reservation_states_are_denied_with_specific_reasons ... ok
+test_scan_requires_login_and_returns_to_scan_page ... ok
+test_manual_status_is_not_overridden_by_sync ... ok
+test_qr_png_and_regenerate ... ok
+test_room_create_edit_validate ... ok
+test_status_change_recorded_in_history_and_audit ... ok
+test_admin_password_reset ... ok
+test_cannot_deactivate_self_or_last_admin_or_change_own_role ... ok
+test_deactivate_signs_user_out_and_blocks_login ... ok
+test_role_change_takes_effect ... ok
+test_deactivated_account_cannot_login ... ok
+test_invalid_credentials_rejected_with_clear_message ... ok
+test_logout_ends_session ... ok
+test_logout_requires_csrf ... ok
+test_next_preserved_when_login_required ... ok
+test_no_secrets_in_pages ... ok
+test_open_redirect_blocked ... ok
+test_protected_pages_redirect_anonymous_users ... ok
+test_session_cookie_flags ... ok
+test_valid_login_redirects_by_role_and_session_persists ... ok
+test_production_requires_secret_key ... ok
+test_lockout_after_repeated_failures ... ok
+test_registration_can_be_disabled ... ok
+test_csrf_required_on_register_and_login ... ok
+test_register_duplicates_case_insensitive ... ok
+test_register_success_and_password_hashed ... ok
+test_register_validation ... ok
+test_database_initialises_with_schema_and_seed_once ... ok
+test_foreign_keys_enforced ... ok
+test_login_page_and_security_headers ... ok
+test_no_inline_styles_or_scripts_in_pages ... ok
+test_anonymous_error_page_renders_without_session ... ok
+test_backup_command_creates_readable_copy ... ok
+test_healthz ... ok
+test_admin_approves_and_rejects ... ok
+test_admin_cannot_review_own_request_and_past_cannot_be_approved ... ok
+test_approval_rechecks_availability_and_db_trigger_blocks_overlap ... ok
+test_cancel_pending_and_approved_and_room_status_follows ... ok
+test_idor_reservation_detail ... ok
+test_only_admins_can_review ... ok
+test_reservation_history_filters ... ok
+test_user_cannot_cancel_after_start_or_others_reservation ... ok
+test_simultaneous_approvals_only_one_wins ... ok
+test_simultaneous_requests_cannot_double_book ... ok
+test_invalid_reservations_rejected ... ok
+test_maintenance_room_cannot_be_reserved ... ok
+test_overlap_rejected_adjacent_allowed ... ok
+test_professor_gets_longer_limit ... ok
+test_reserve_requires_csrf ... ok
+test_sql_injection_and_html_are_inert ... ok
+test_started_slot_today_is_past ... ok
+test_valid_reservation_saved_as_pending ... ok
+test_availability_window_filter ... ok
+test_dashboard_shows_database_values ... ok
+test_room_detail_and_missing_room ... ok
+test_search_and_filters ... ok
+Ran 77 tests in 3.886s
+OK
